@@ -21,6 +21,7 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.5.3")
     implementation("com.typesafe:config:1.4.2")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
+    implementation("io.vavr:vavr:0.10.4")
     testImplementation("junit:junit:4.13.2")
 }
 
