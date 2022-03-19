@@ -20,7 +20,9 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import io.vavr.control.Try;
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
+import org.gradle.internal.impldep.org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -579,7 +582,64 @@ public class BuildMojo extends AbstractDockerMojo {
 
     private List<String> copyResources(String destination) throws IOException {
         final List<String> allCopiedPaths = newArrayList();
+        for (final Resource resource : resources) {
+            final File source = new File(resource.getDirectory());
+            final List<String> includes = resource.getIncludes();
+            final List<String> excludes = resource.getExcludes();
+            final DirectoryScanner scanner = new DirectoryScanner();
+            scanner.setBasedir(source);
+            // must pass null if includes/excludes is empty to get default filters.
+            // passing zero length array forces it to have no filters at all.
+            scanner.setIncludes(includes.isEmpty() ? null
+                    : includes.toArray(new String[includes.size()]));
+            scanner.setExcludes(excludes.isEmpty() ? null
+                    : excludes.toArray(new String[excludes.size()]));
+            scanner.scan();
 
+            final String[] includedFiles = scanner.getIncludedFiles();
+            if (includedFiles.length == 0) {
+                getLog().info("No resources will be copied, no files match specified patterns");
+            }
+
+            final List<String> copiedPaths = newArrayList();
+
+            final boolean copyWholeDir = includes.isEmpty() && excludes.isEmpty() &&
+                    resource.getTargetPath() != null;
+
+            // file location relative to docker directory, used later to generate Dockerfile
+            final String targetPath = resource.getTargetPath() == null ? "" : resource.getTargetPath();
+
+            if (copyWholeDir) {
+                final Path destPath = Paths.get(destination, targetPath);
+                getLog().info(String.format("Copying dir %s -> %s", source, destPath));
+
+                Files.createDirectories(destPath);
+                FileUtils.copyDirectoryStructure(source, destPath.toFile());
+                copiedPaths.add(separatorsToUnix(targetPath));
+            } else {
+                for (final String included : includedFiles) {
+                    final Path sourcePath = Paths.get(resource.getDirectory()).resolve(included);
+                    final Path destPath = Paths.get(destination, targetPath).resolve(included);
+                    getLog().info(String.format("Copying %s -> %s", sourcePath, destPath));
+                    // ensure all directories exist because copy operation will fail if they don't
+                    Files.createDirectories(destPath.getParent());
+                    Files.copy(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING,
+                            StandardCopyOption.COPY_ATTRIBUTES);
+
+                    copiedPaths.add(separatorsToUnix(Paths.get(targetPath).resolve(included).toString()));
+                }
+            }
+
+            // The list of included files returned from DirectoryScanner can be in a different order
+            // each time. This causes the ADD statements in the generated Dockerfile to appear in a
+            // different order. We want to avoid this so each run of the plugin always generates the same
+            // Dockerfile, which also makes testing easier. Sort the list of paths for each resource
+            // before adding it to the allCopiedPaths list. This way we follow the ordering of the
+            // resources in the pom, while making sure all the paths of each resource are always in the
+            // same order.
+            Collections.sort(copiedPaths);
+            allCopiedPaths.addAll(copiedPaths);
+        }
         return allCopiedPaths;
     }
 
