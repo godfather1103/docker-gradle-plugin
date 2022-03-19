@@ -18,11 +18,11 @@ version = "${property("plugin.version")}"
 dependencies {
     implementation(gradleApi())
     implementation("com.spotify:docker-client:8.16.0:shaded")
-    implementation("com.google.auth:google-auth-library-oauth2-http:1.5.3")
-    implementation("com.typesafe:config:1.4.2")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
+    implementation("com.google.auth:google-auth-library-oauth2-http:0.6.0")
+    implementation("com.typesafe:config:1.2.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.0.202109080827-r")
+    testImplementation("junit:junit:4.13")
     implementation("io.vavr:vavr:0.10.4")
-    testImplementation("junit:junit:4.13.2")
 }
 
 java {

@@ -1,20 +1,44 @@
 package com.github.godfather1103.gradle.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.godfather1103.gradle.entity.DockerBuildInformation;
 import com.github.godfather1103.gradle.entity.Git;
+import com.github.godfather1103.gradle.entity.Resource;
 import com.github.godfather1103.gradle.ext.DockerPluginExtension;
+import com.github.godfather1103.gradle.util.Utils;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import com.spotify.docker.client.AnsiProgressHandler;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.exceptions.DockerException;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import io.vavr.control.Try;
 import org.gradle.api.GradleException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.github.godfather1103.gradle.util.Utils.parseImageName;
+import static com.github.godfather1103.gradle.util.Utils.writeImageInfoFile;
+import static com.google.common.base.CharMatcher.WHITESPACE;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Lists.newArrayList;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class BuildMojo extends AbstractDockerMojo {
 
@@ -191,6 +215,8 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private String network;
 
+    private List<Resource> resources;
+
     private final Map<String, String> replaceMap = new HashMap<>(0);
 
 
@@ -228,7 +254,7 @@ public class BuildMojo extends AbstractDockerMojo {
         buildArgs = ext.getDockerBuildArgs().getOrNull();
         healthcheck = ext.getHealthcheck().getOrNull();
         network = ext.getNetwork().getOrNull();
-
+        this.resources = new ArrayList<>(0);
         ext.getProject().getProperties().forEach((k, v) -> {
             if (v != null) {
                 replaceMap.put(k, v.toString());
@@ -305,8 +331,279 @@ public class BuildMojo extends AbstractDockerMojo {
                         }
                     }
 
+                    validateParameters();
+
+                    final String[] repoTag = parseImageName(imageName);
+                    final String repo = repoTag[0];
+                    final String tag = repoTag[1];
+
+                    if (useGitCommitId) {
+                        if (tag != null) {
+                            getLog().warn("Ignoring useGitCommitId flag because tag is explicitly set in image name ");
+                        } else if (commitId == null) {
+                            throw new GradleException(
+                                    "Cannot tag with git commit ID because directory not a git repo");
+                        } else {
+                            imageName = repo + ":" + commitId;
+                        }
+                    }
+                    replaceMap.put("imageName", imageName);
+
+                    final String destination = getDestination();
+                    if (dockerDirectory == null) {
+                        final List<String> copiedPaths = copyResources(destination);
+                        createDockerFile(destination, copiedPaths);
+                    } else {
+                        final Resource resource = new Resource();
+                        resource.setDirectory(dockerDirectory);
+                        resources.add(resource);
+                        copyResources(destination);
+                    }
+
+                    buildImage(dockerClient, destination, buildParams());
+                    tagImage(dockerClient, forceTags);
+
+                    final DockerBuildInformation buildInfo = new DockerBuildInformation(imageName, getLog());
+
+                    // Push specific tags specified in pom rather than all images
+                    if (pushImageTag) {
+                        Utils.pushImageTag(dockerClient, imageName, imageTags, getLog(), isSkipDockerPush());
+                    }
+
+                    if (pushImage) {
+                        Utils.pushImage(dockerClient, imageName, imageTags, getLog(), buildInfo, getRetryPushCount(),
+                                getRetryPushTimeout(), isSkipDockerPush());
+                    }
+
+                    if (saveImageToTarArchive != null) {
+                        Utils.saveImage(dockerClient, imageName, Paths.get(saveImageToTarArchive), getLog());
+                    }
+
+                    // Write image info file
+                    writeImageInfoFile(buildInfo, tagInfoFile);
                 }).onFailure(e -> getLog().error("dockerBuild Error", e))
                 .getOrElseThrow(e -> new GradleException("dockerBuild Error", e));
+    }
+
+    private void validateParameters() throws GradleException {
+        if (dockerDirectory == null) {
+            if (baseImage == null) {
+                throw new GradleException("Must specify baseImage if dockerDirectory is null");
+            }
+        } else {
+            if (baseImage != null) {
+                getLog().warn("Ignoring baseImage because dockerDirectory is set");
+            }
+            if (maintainer != null) {
+                getLog().warn("Ignoring maintainer because dockerDirectory is set");
+            }
+            if (entryPoint != null) {
+                getLog().warn("Ignoring entryPoint because dockerDirectory is set");
+            }
+            if (cmd != null) {
+                getLog().warn("Ignoring cmd because dockerDirectory is set");
+            }
+            if (runList != null && !runList.isEmpty()) {
+                getLog().warn("Ignoring run because dockerDirectory is set");
+            }
+            if (workdir != null) {
+                getLog().warn("Ignoring workdir because dockerDirectory is set");
+            }
+            if (user != null) {
+                getLog().warn("Ignoring user because dockerDirectory is set");
+            }
+        }
+    }
+
+    private void buildImage(final DockerClient docker, final String buildDir,
+                            final DockerClient.BuildParam... buildParams)
+            throws GradleException, DockerException, IOException, InterruptedException {
+        getLog().info("Building image " + imageName);
+        docker.build(Paths.get(buildDir), imageName, new AnsiProgressHandler(), buildParams);
+        getLog().info("Built " + imageName);
+    }
+
+    private void tagImage(final DockerClient docker, boolean forceTags)
+            throws DockerException, InterruptedException, GradleException {
+        final String imageNameWithoutTag = parseImageName(imageName)[0];
+        for (final String imageTag : imageTags) {
+            if (!isNullOrEmpty(imageTag)) {
+                getLog().info("Tagging " + imageName + " with " + imageTag);
+                docker.tag(imageName, imageNameWithoutTag + ":" + imageTag, forceTags);
+            }
+        }
+    }
+
+    private void createDockerFile(final String directory, final List<String> filesToAdd)
+            throws IOException {
+
+        final List<String> commands = newArrayList();
+        if (baseImage != null) {
+            commands.add("FROM " + baseImage);
+        }
+        if (maintainer != null) {
+            commands.add("MAINTAINER " + maintainer);
+        }
+
+        if (env != null) {
+            final List<String> sortedKeys = Ordering.natural().sortedCopy(env.keySet());
+            for (final String key : sortedKeys) {
+                final String value = env.get(key);
+                commands.add(String.format("ENV %s %s", key, value));
+            }
+        }
+
+        if (workdir != null) {
+            commands.add("WORKDIR " + workdir);
+        }
+
+        for (final String file : filesToAdd) {
+            // The dollar sign in files has to be escaped because docker interprets it as variable
+            commands.add(
+                    String.format("ADD %s %s", file.replaceAll("\\$", "\\\\\\$"), normalizeDest(file)));
+        }
+
+        if (runList != null && !runList.isEmpty()) {
+            if (squashRunCommands) {
+                commands.add("RUN " + Joiner.on(" &&\\\n\t").join(runList));
+            } else {
+                for (final String run : runList) {
+                    commands.add("RUN " + run);
+                }
+            }
+        }
+
+        if (healthcheck != null && healthcheck.containsKey("cmd")) {
+            final StringBuffer healthcheckBuffer = new StringBuffer("HEALTHCHECK ");
+            if (healthcheck.containsKey("options")) {
+                healthcheckBuffer.append(healthcheck.get("options"));
+                healthcheckBuffer.append(" ");
+            }
+            healthcheckBuffer.append("CMD ");
+            healthcheckBuffer.append(healthcheck.get("cmd"));
+            commands.add(healthcheckBuffer.toString());
+        }
+
+        if (exposesSet.size() > 0) {
+            // The values will be sorted with no duplicated since exposesSet is a TreeSet
+            commands.add("EXPOSE " + Joiner.on(" ").join(exposesSet));
+        }
+
+        if (user != null) {
+            commands.add("USER " + user);
+        }
+
+        if (entryPoint != null) {
+            commands.add("ENTRYPOINT " + entryPoint);
+        }
+        if (cmd != null) {
+            // TODO(dano): we actually need to check whether the base image has an entrypoint
+            if (entryPoint != null) {
+                // CMD needs to be a list of arguments if ENTRYPOINT is set.
+                if (cmd.startsWith("[") && cmd.endsWith("]")) {
+                    // cmd seems to be an argument list, so we're good
+                    commands.add("CMD " + cmd);
+                } else {
+                    // cmd does not seem to be an argument list, so try to generate one.
+                    final List<String> args = ImmutableList.copyOf(
+                            Splitter.on(WHITESPACE).omitEmptyStrings().split(cmd));
+                    final StringBuilder cmdBuilder = new StringBuilder("[");
+                    for (final String arg : args) {
+                        cmdBuilder.append('"').append(arg).append('"');
+                    }
+                    cmdBuilder.append(']');
+                    final String cmdString = cmdBuilder.toString();
+                    commands.add("CMD " + cmdString);
+                    getLog().warn("Entrypoint provided but cmd is not an explicit list. Attempting to " +
+                            "generate CMD string in the form of an argument list.");
+                    getLog().warn("CMD " + cmdString);
+                }
+            } else {
+                // no ENTRYPOINT set so use cmd verbatim
+                commands.add("CMD " + cmd);
+            }
+        }
+
+        // Add VOLUME's to dockerfile
+        if (volumes != null) {
+            for (final String volume : volumes) {
+                commands.add("VOLUME " + volume);
+            }
+        }
+
+        // Add LABEL's to dockerfile
+        if (labels != null) {
+            for (final String label : labels) {
+                commands.add("LABEL " + label);
+            }
+        }
+
+        getLog().debug("Writing Dockerfile:" + System.lineSeparator() +
+                Joiner.on(System.lineSeparator()).join(commands));
+
+        // this will overwrite an existing file
+        Files.createDirectories(Paths.get(directory));
+        Files.write(Paths.get(directory, "Dockerfile"), commands, UTF_8);
+    }
+
+    private String normalizeDest(final String filePath) {
+        // if the path is a file (i.e. not a directory), remove the last part of the path so that we
+        // end up with:
+        //   ADD foo/bar.txt foo/
+        // instead of
+        //   ADD foo/bar.txt foo/bar.txt
+        // This is to prevent issues when adding tar.gz or other archives where Docker will
+        // automatically expand the archive into the "dest", so
+        //  ADD foo/x.tar.gz foo/x.tar.gz
+        // results in x.tar.gz being expanded *under* the path foo/x.tar.gz/stuff...
+        final File file = new File(filePath);
+
+        final String dest;
+        // need to know the path relative to destination to test if it is a file or directory,
+        // but only remove the last part of the path if there is a parent (i.e. don't remove a
+        // parent path segment from "file.txt")
+        if (new File(getDestination(), filePath).isFile()) {
+            if (file.getParent() != null) {
+                // remove file part of path
+                dest = separatorsToUnix(file.getParent()) + "/";
+            } else {
+                // working with a simple "ADD file.txt"
+                dest = ".";
+            }
+        } else {
+            dest = separatorsToUnix(file.getPath());
+        }
+
+        return dest;
+    }
+
+    private List<String> copyResources(String destination) throws IOException {
+        final List<String> allCopiedPaths = newArrayList();
+
+        return allCopiedPaths;
+    }
+
+    public static String separatorsToUnix(final String path) {
+        if (path == null || path.indexOf(WINDOWS_SEPARATOR) == -1) {
+            return path;
+        }
+        return path.replace(WINDOWS_SEPARATOR, UNIX_SEPARATOR);
+    }
+
+    private String getDestination() {
+        return Paths.get(buildDirectory, "docker").toString();
+    }
+
+    private String get(final String override, final Config config, final String path)
+            throws GradleException {
+        if (override != null) {
+            return override;
+        }
+        try {
+            return expand(config.getString(path));
+        } catch (ConfigException.Missing e) {
+            return null;
+        }
     }
 
     public String expand(String value) {
@@ -321,11 +618,33 @@ public class BuildMojo extends AbstractDockerMojo {
 
     @Override
     public void execute() {
+        LOCK.lock();
         try {
-            LOCK.lock();
             super.execute();
         } finally {
             LOCK.unlock();
         }
+    }
+
+    private DockerClient.BuildParam[] buildParams()
+            throws UnsupportedEncodingException, JsonProcessingException {
+        final List<DockerClient.BuildParam> buildParams = Lists.newArrayList();
+        if (pullOnBuild) {
+            buildParams.add(DockerClient.BuildParam.pullNewerImage());
+        }
+        if (noCache) {
+            buildParams.add(DockerClient.BuildParam.noCache());
+        }
+        if (!rm) {
+            buildParams.add(DockerClient.BuildParam.rm(false));
+        }
+        if (!buildArgs.isEmpty()) {
+            buildParams.add(DockerClient.BuildParam.create("buildargs",
+                    URLEncoder.encode(OBJECT_MAPPER.writeValueAsString(buildArgs), "UTF-8")));
+        }
+        if (!isNullOrEmpty(network)) {
+            buildParams.add(DockerClient.BuildParam.create("networkmode", network));
+        }
+        return buildParams.toArray(new DockerClient.BuildParam[buildParams.size()]);
     }
 }

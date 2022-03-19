@@ -50,8 +50,46 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
 
     protected DockerPluginExtension ext;
 
+    private String dockerHost;
+
+    private String dockerCertPath;
+
+    private String serverId;
+
+    private String registryUrl;
+
+    /**
+     * Number of retries for failing pushes, defaults to 5.
+     */
+    private int retryPushCount;
+
+    /**
+     * Retry timeout for failing pushes, defaults to 10 seconds.
+     */
+    private int retryPushTimeout;
+
+    /**
+     * Flag to skip docker goal, making goal a no-op. This can be useful when docker goal
+     * is bound to Maven phase, and you want to skip Docker command. Defaults to false.
+     */
+    private boolean skipDocker;
+
+    /**
+     * Flag to skip docker push, making push goal a no-op. This can be useful when docker:push
+     * is bound to deploy goal, and you want to deploy a jar but not a container. Defaults to false.
+     */
+    private boolean skipDockerPush;
+
     public AbstractDockerMojo(DockerPluginExtension ext) {
         this.ext = ext;
+        this.dockerHost = ext.getDockerHost().getOrNull();
+        this.dockerCertPath = ext.getDockerCertPath().getOrNull();
+        this.serverId = ext.getServerId().getOrNull();
+        this.registryUrl = ext.getRegistryUrl().getOrNull();
+        this.retryPushCount = ext.getRetryPushCount().getOrElse(5);
+        this.retryPushTimeout = ext.getRetryPushTimeout().getOrElse(10000);
+        this.skipDocker = ext.getSkipDocker().getOrElse(false);
+        this.skipDockerPush = ext.getSkipDocker().getOrElse(false);
     }
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractDockerMojo.class);
@@ -61,10 +99,20 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
     }
 
     public Boolean isSkipDocker() {
-        return Boolean.valueOf(System.getProperty(
-                "skipDocker",
-                ext.getSkipDocker().get().toString()
-        ));
+        return skipDocker;
+    }
+
+
+    public int getRetryPushTimeout() {
+        return retryPushTimeout;
+    }
+
+    public int getRetryPushCount() {
+        return retryPushCount;
+    }
+
+    public boolean isSkipDockerPush() {
+        return skipDockerPush;
     }
 
     public void execute() {
