@@ -358,7 +358,7 @@ public class BuildMojo extends AbstractDockerMojo {
                     } else {
                         final Resource resource = new Resource();
                         resource.setDirectory(dockerDirectory);
-                        resource.setExcludes(new ArrayList<>(3) {{
+                        resource.setExcludes(new ArrayList<>(4) {{
                             add("gradle/**");
                             add(".gradle/**");
                             add("*gradle*");
