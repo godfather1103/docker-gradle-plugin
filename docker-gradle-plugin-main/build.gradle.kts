@@ -33,3 +33,23 @@ gradlePlugin {
         }
     }
 }
+
+pluginBundle {
+    website = "https://github.com/godfather1103"
+    vcsUrl = "https://github.com/godfather1103/docker-gradle-plugin"
+    description = "${property("plugin.description")}"
+    (plugins){
+        "dockerPlugin" {
+            displayName = "${property("plugin.displayName")}"
+            description = "${property("plugin.description")}"
+            tags = listOf("docker", "build docker image", "push docker image")
+            version = "${property("plugin.version")}"
+        }
+    }
+    mavenCoordinates {
+        groupId = "${property("plugin.groupId")}"
+        artifactId = "${property("plugin.artifactId")}"
+        version = "${property("plugin.version")}"
+        description = "${property("plugin.description")}"
+    }
+}
