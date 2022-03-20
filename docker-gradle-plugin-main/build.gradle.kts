@@ -1,16 +1,9 @@
-import java.io.FileInputStream
-import java.util.*
-
 plugins {
     java
     id("com.gradle.plugin-publish") version "0.15.0"
     `java-gradle-plugin`
     kotlin("jvm") version "1.4.32"
 }
-
-val p = Properties()
-p.load(FileInputStream("../gradle.properties"))
-p.forEach { t, u -> project.ext.set(t as String, u) }
 
 group = "${property("plugin.groupId")}"
 version = "${property("plugin.version")}"

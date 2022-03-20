@@ -1,11 +1,5 @@
 import com.github.godfather1103.gradle.entity.AuthConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.FileInputStream
-import java.util.*
-
-val p = Properties()
-p.load(FileInputStream("../gradle.properties"))
-p.forEach { t, u -> project.ext.set(t as String, u) }
 
 plugins {
     java
@@ -16,8 +10,8 @@ plugins {
     kotlin("plugin.spring") version "1.5.32"
 }
 
-group = "${property("plugin.groupId")}"
-version = "${property("plugin.version")}"
+group = "io.github.godfather1103"
+version = "1.0"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 configurations {
