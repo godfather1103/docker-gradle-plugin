@@ -115,6 +115,17 @@ docker {
 | <kbd>docker.password</kbd> - docker账户的密码  | **允许的值:** <br/><kbd>字符串</kbd> - `'password'`            |
 | <kbd>docker.email</kbd> - docker账户的email  | **允许的值:** <br/><kbd>字符串</kbd> - `'example@example.com'` |
 
+## 捐赠
+你的馈赠将助力我更好的去贡献，谢谢！  
+
+[PayPal](https://paypal.me/godfather1103?locale.x=zh_XC)
+
+支付宝  
+<img src="https://s4.ax1x.com/2021/12/16/T9B04f.png" alt="支付宝" width="200" height="300" align="bottom" />   
+<img src="https://s4.ax1x.com/2021/12/16/T9BI8U.png" alt="支付宝" width="200" height="300" align="bottom" />   
+微信  
+<img src="https://s.pc.qq.com/tousu/img/20200815/9185636_1597474776.jpg" alt="微信支付" width="300" height="320" align="bottom" />
+
 
 ## 写在最后
 该插件相关创意来源于[docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)

@@ -113,6 +113,17 @@ docker {
 | <kbd>docker.password</kbd> - Password of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'password'`            |
 | <kbd>docker.email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` |
 
+## Donate
+Your gift will help me to contribute better, thank you!
+
+[PayPal](https://paypal.me/godfather1103?locale.x=zh_XC)
+
+Alipay  
+<img src="https://s4.ax1x.com/2021/12/16/T9B04f.png" alt="支付宝" width="200" height="300" align="bottom" />   
+<img src="https://s4.ax1x.com/2021/12/16/T9BI8U.png" alt="支付宝" width="200" height="300" align="bottom" />   
+WeChatPay  
+<img src="https://s.pc.qq.com/tousu/img/20200815/9185636_1597474776.jpg" alt="微信支付" width="300" height="320" align="bottom" />
+
 
 ## Epilogue
 idea from [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
