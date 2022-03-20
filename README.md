@@ -84,23 +84,23 @@ docker {
 ## 配置DSL
 > 以下属性是设置DSL docker{…}的一部分其中允许您设置环境和依赖项。  
 
-| 配置项                                         | 属性值                                                                                                                            |
-|:--------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------|
-| <kbd>imageName</kbd> - 构建的镜像名               | **Acceptable Values:** <br/><kbd>字符串</kbd> - `'demoImage'` <br/><br/>**Default Value:** <kbd>''</kbd>                          |
-| <kbd>dockerDirectory</kbd> - docker对应的目录    | **Acceptable Values:** <br/><kbd>路径</kbd> - `'${project.projectDir}/'` <br/><br/>**Default Value:** <kbd>''</kbd>              |
-| <kbd>dockerBuildDependsOn</kbd> - 构建镜像依赖的任务 | **Acceptable Values:** <br/><kbd>任务名</kbd> - `'bootJar'` <br/><br/>**Default Value:** <kbd>''</kbd>                            |
-| <kbd>dockerImageTags</kbd> - 构建的tag列表       | **Acceptable Values:** <br/><kbd>字符串</kbd> - `'1.0'` <br/><br/>**Default Value:** <kbd>''</kbd>                                |
-| <kbd>pushImage</kbd> - 是否推送对应的镜像            | **Acceptable Values:** <br/><kbd>布尔值</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                              |
-| <kbd>pushImageTag</kbd> - 是否推送tag           | **Acceptable Values:** <br/><kbd>布尔值</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                              |
-| <kbd>auth</kbd> - 认证信息                      | **Acceptable Values:** <br/><kbd>AuthConfig对象</kbd> - `new AuthConfig(用户名,密码,邮箱)` <br/><br/>**Default Value:** <kbd>null</kbd> |
+| 配置项                                         | 属性值                                                                                                     |
+|:--------------------------------------------|:--------------------------------------------------------------------------------------------------------|
+| <kbd>imageName</kbd> - 构建的镜像名               | **允许的值:** <br/><kbd>字符串</kbd> - `'demoImage'` <br/><br/>**默认值:** <kbd>''</kbd>                          |
+| <kbd>dockerDirectory</kbd> - docker对应的目录    | **允许的值:** <br/><kbd>路径</kbd> - `'${project.projectDir}/'` <br/><br/>**默认值:** <kbd>''</kbd>              |
+| <kbd>dockerBuildDependsOn</kbd> - 构建镜像依赖的任务 | **允许的值:** <br/><kbd>任务名</kbd> - `'bootJar'` <br/><br/>**默认值:** <kbd>''</kbd>                            |
+| <kbd>dockerImageTags</kbd> - 构建的tag列表       | **允许的值:** <br/><kbd>字符串</kbd> - `'1.0'` <br/><br/>**默认值:** <kbd>''</kbd>                                |
+| <kbd>pushImage</kbd> - 是否推送对应的镜像            | **允许的值:** <br/><kbd>布尔值</kbd> - `true` <br/><br/>**默认值:** <kbd>false</kbd>                              |
+| <kbd>pushImageTag</kbd> - 是否推送tag           | **允许的值:** <br/><kbd>布尔值</kbd> - `true` <br/><br/>**默认值:** <kbd>false</kbd>                              |
+| <kbd>auth</kbd> - 认证信息                      | **允许的值:** <br/><kbd>AuthConfig对象</kbd> - `new AuthConfig(用户名,密码,邮箱)` <br/><br/>**默认值:** <kbd>null</kbd> |
 
 ### AuthConfig对象属性值
 
-| 配置项                                | 属性值                                                                                                             |
-|:-----------------------------------|:----------------------------------------------------------------------------------------------------------------|
-| <kbd>username</kbd> - docker账户的用户名 | **Acceptable Values:** <br/><kbd>字符串</kbd> - `'username'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
-| <kbd>password</kbd> - docker账户的密码  | **Acceptable Values:** <br/><kbd>字符串</kbd> - `'password'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
-| <kbd>email</kbd> - docker账户的email  | **Acceptable Values:** <br/><kbd>字符串</kbd> - `'example@example.com'` <br/><br/>**Default Value:** <kbd>''</kbd> |
+| 配置项                                | 属性值                                                                                      |
+|:-----------------------------------|:-----------------------------------------------------------------------------------------|
+| <kbd>username</kbd> - docker账户的用户名 | **允许的值:** <br/><kbd>字符串</kbd> - `'username'` <br/><br/>**默认值:** <kbd>''</kbd>            |
+| <kbd>password</kbd> - docker账户的密码  | **允许的值:** <br/><kbd>字符串</kbd> - `'password'` <br/><br/>**默认值:** <kbd>''</kbd>            |
+| <kbd>email</kbd> - docker账户的email  | **允许的值:** <br/><kbd>字符串</kbd> - `'example@example.com'` <br/><br/>**默认值:** <kbd>''</kbd> |
 
 
 ## 写在最后
