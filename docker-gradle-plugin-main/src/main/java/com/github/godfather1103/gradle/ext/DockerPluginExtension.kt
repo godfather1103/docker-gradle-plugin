@@ -108,4 +108,6 @@ open class DockerPluginExtension(val project: Project) {
      * */
     val tags: SetProperty<String> = project.objects.setProperty(String::class.java)
 
+    val dockerBuildDependsOn: SetProperty<String> = project.objects.setProperty(String::class.java)
+
 }
