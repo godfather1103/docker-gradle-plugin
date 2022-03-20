@@ -79,6 +79,28 @@ docker {
 }
 ```
 
+## Setup DSL
+> The following attributes are a part of the Setup DSL <kbd>docker { ... }</kbd> in which allows you to set up the environment and dependencies.  
+
+| Attributes                                                          | Values                                                                                                                                            |
+|:--------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| <kbd>imageName</kbd> - Build image name                             | **Acceptable Values:** <br/><kbd>String</kbd> - `'demoImage'` <br/><br/>**Default Value:** <kbd>''</kbd>                                          |
+| <kbd>dockerDirectory</kbd> - Directory corresponding to docker      | **Acceptable Values:** <br/><kbd>Path</kbd> - `'${project.projectDir}/'` <br/><br/>**Default Value:** <kbd>''</kbd>                               |
+| <kbd>dockerBuildDependsOn</kbd> - Task of building image dependency | **Acceptable Values:** <br/><kbd>TaskName</kbd> - `'bootJar'` <br/><br/>**Default Value:** <kbd>''</kbd>                                          |
+| <kbd>dockerImageTags</kbd> - Built tag list                         | **Acceptable Values:** <br/><kbd>String</kbd> - `'1.0'` <br/><br/>**Default Value:** <kbd>''</kbd>                                                |
+| <kbd>pushImage</kbd> - Whether to push the corresponding image      | **Acceptable Values:** <br/><kbd>Boolean</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                                             |
+| <kbd>pushImageTag</kbd> - Push tag?                                 | **Acceptable Values:** <br/><kbd>Boolean</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                                             |
+| <kbd>auth</kbd> - Authentication information                        | **Acceptable Values:** <br/><kbd>AuthConfig Object</kbd> - `new AuthConfig(username,password,email)` <br/><br/>**Default Value:** <kbd>null</kbd> |
+
+### AuthConfig Properties
+
+| Attributes                                       | Values                                                                                                             |
+|:-------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------|
+| <kbd>username</kbd> - UserName of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'username'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
+| <kbd>password</kbd> - Password of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'password'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
+| <kbd>email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` <br/><br/>**Default Value:** <kbd>''</kbd> |
+
+
 ## Epilogue
 idea from [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
 
