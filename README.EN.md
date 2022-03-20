@@ -7,7 +7,7 @@
 // groovy DSL
 // Using the plugins DSL:
 plugins {
-  id "io.github.godfather1103.docker-plugin" version "1.0"
+  id "io.github.godfather1103.docker-plugin" version "1.1"
 }
 
 // Using legacy plugin application:
@@ -18,7 +18,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.github.godfather1103:docker-plugin:1.0"
+        classpath "io.github.godfather1103:docker-plugin:1.1"
     }
 }
 apply plugin: "io.github.godfather1103.docker-plugin"
@@ -26,7 +26,7 @@ apply plugin: "io.github.godfather1103.docker-plugin"
 // kotlin DSL
 // Using the plugins DSL:
 plugins {
-    id("io.github.godfather1103.docker-plugin") version "1.0"
+    id("io.github.godfather1103.docker-plugin") version "1.1"
 }
 
 // Using legacy plugin application:
@@ -37,7 +37,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("io.github.godfather1103:docker-plugin:1.0")
+        classpath("io.github.godfather1103:docker-plugin:1.1")
     }
 }
 apply(plugin = "io.github.godfather1103.docker-plugin")
