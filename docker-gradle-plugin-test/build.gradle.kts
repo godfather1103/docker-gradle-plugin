@@ -47,7 +47,7 @@ tasks.withType<Test> {
 docker {
     dockerBuildDependsOn.add("bootJar")
     dockerDirectory.value(project.projectDir.absolutePath)
-    auth.value(AuthConfig("demo", "demo", "demo@demo.com"))
+    auth.value(AuthConfig("demo", "demo"))
     imageName.value("demo")
     dockerImageTags.add("1.0")
 }
