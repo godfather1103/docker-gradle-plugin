@@ -13,7 +13,7 @@ ENV work_dir=/example/APP/web
 # 设置工作目录
 WORKDIR ${work_dir}
 # 添加介质到工作目录中
-COPY build/libs/docker-gradle-plugin-test-1.0.jar  ${work_dir}
+COPY build/libs/groovy-dsl-demo-1.0.jar  ${work_dir}
 # 需要开放的端口
 EXPOSE 8080
 # 日志挂载的路径

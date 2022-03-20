@@ -1,0 +1,48 @@
+import com.github.godfather1103.gradle.entity.AuthConfig
+
+plugins {
+    id 'org.springframework.boot' version '2.5.10'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id "io.github.godfather1103.docker-plugin" version "1.0"
+}
+
+group = 'io.github.godfather1103'
+version = '1.0'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+docker {
+    dockerBuildDependsOn.add("bootJar")
+    dockerDirectory.value(project.projectDir.absolutePath)
+    def user = (project.findProperty("docker.username") ?: "").toString()
+    def password = (project.findProperty("docker.password") ?: "").toString()
+    def email = (project.findProperty("docker.email") ?: "").toString()
+    def name = (project.findProperty("docker.demo.imageName") ?: "").toString()
+    if (!user.isEmpty() && !password.isEmpty()) {
+        auth.value(new AuthConfig(user, password, email))
+    }
+    imageName.value(name + "-groovy")
+    dockerImageTags.add("1.0")
+    pushImageTag.value(true)
+    pushImage.value(true)
+}
