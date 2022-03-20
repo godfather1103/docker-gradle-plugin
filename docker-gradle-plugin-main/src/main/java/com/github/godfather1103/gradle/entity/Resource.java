@@ -1,11 +1,12 @@
 package com.github.godfather1103.gradle.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Resource implements Serializable, Cloneable {
-    private List<String> includes;
-    private List<String> excludes;
+    private List<String> includes = new ArrayList<>(0);
+    private List<String> excludes = new ArrayList<>(0);
     private String directory;
     private String targetPath;
 

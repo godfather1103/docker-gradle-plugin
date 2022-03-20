@@ -1,3 +1,4 @@
+import com.github.godfather1103.gradle.entity.AuthConfig
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.*
@@ -47,4 +48,11 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+docker {
+    dockerBuildDependsOn.add("bootJar")
+    dockerDirectory.value(project.projectDir.absolutePath)
+    auth.value(AuthConfig("demo", "demo", "demo@demo.com"))
+    imageName.value("demo")
 }
