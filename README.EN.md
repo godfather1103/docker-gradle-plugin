@@ -1,5 +1,5 @@
 # docker-gradle-plugin
-build, push the gradle plug-in of docker image.
+> build, push the gradle plug-in of docker image.  
 
 ## Usage
 1. Introducing relevant plug-ins into gradle
