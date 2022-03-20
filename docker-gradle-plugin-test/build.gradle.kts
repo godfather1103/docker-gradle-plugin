@@ -55,4 +55,5 @@ docker {
     dockerDirectory.value(project.projectDir.absolutePath)
     auth.value(AuthConfig("demo", "demo", "demo@demo.com"))
     imageName.value("demo")
+    dockerImageTags.add("1.0")
 }

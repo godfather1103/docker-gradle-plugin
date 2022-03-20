@@ -248,7 +248,6 @@ public class BuildMojo extends AbstractDockerMojo {
         profile = ext.getDockerBuildProfile().getOrNull();
         tagInfoFile = ext.getTagInfoFile().getOrNull();
         useGitCommitId = ext.getUseGitCommitId().getOrElse(false);
-//        resources = ext
         imageName = ext.getImageName().getOrNull();
         imageTags = ext.getDockerImageTags().getOrElse(new ArrayList<>(0));
         defaultProfile = ext.getDockerDefaultBuildProfile().getOrNull();
