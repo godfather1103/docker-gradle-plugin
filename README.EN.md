@@ -1,6 +1,10 @@
 # docker-gradle-plugin
 > build, push the gradle plug-in of docker image.  
 
+## Code Repository
+GitHub: [https://github.com/godfather1103/docker-gradle-plugin](https://github.com/godfather1103/docker-gradle-plugin)  
+Gitee: [https://gitee.com/godfather1103/docker-gradle-plugin](https://gitee.com/godfather1103/docker-gradle-plugin)
+
 ## Usage
 1. Introducing relevant plug-ins into gradle
 ```groovy

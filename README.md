@@ -3,6 +3,10 @@
 
 ### English Readme [click here](README.EN.md)
 
+## 代码库
+GitHub: [https://github.com/godfather1103/docker-gradle-plugin](https://github.com/godfather1103/docker-gradle-plugin)  
+Gitee/码云: [https://gitee.com/godfather1103/docker-gradle-plugin](https://gitee.com/godfather1103/docker-gradle-plugin)  
+
 ## 用法
 1. 在build.gradle中引入相关插件
 ```groovy
