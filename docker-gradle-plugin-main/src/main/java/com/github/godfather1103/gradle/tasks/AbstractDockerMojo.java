@@ -4,6 +4,7 @@ import com.github.godfather1103.gradle.entity.AuthConfig;
 import com.github.godfather1103.gradle.ext.DockerPluginExtension;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -186,6 +187,17 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
 
     protected RegistryAuth registryAuth() throws GradleException {
         AuthConfig authConfig = ext.getAuth().getOrNull();
+        if (authConfig == null) {
+            Object obj = ext.getProject().findProperty("docker.username");
+            String username = obj == null ? null : obj.toString();
+            obj = ext.getProject().findProperty("docker.password");
+            String password = obj == null ? null : obj.toString();
+            obj = ext.getProject().findProperty("docker.email");
+            String email = obj == null ? null : obj.toString();
+            if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
+                authConfig = new AuthConfig(username, password, email);
+            }
+        }
         if (authConfig != null) {
             final RegistryAuth.Builder registryAuthBuilder = RegistryAuth.builder();
 
