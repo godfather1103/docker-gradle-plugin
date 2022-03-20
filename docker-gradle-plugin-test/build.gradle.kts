@@ -47,7 +47,15 @@ tasks.withType<Test> {
 docker {
     dockerBuildDependsOn.add("bootJar")
     dockerDirectory.value(project.projectDir.absolutePath)
-    auth.value(AuthConfig("demo", "demo"))
-    imageName.value("demo")
+    val user = (project.findProperty("docker.username") ?: "") as String
+    val password = (project.findProperty("docker.password") ?: "") as String
+    val email = (project.findProperty("docker.email") ?: "") as String
+    val name = (project.findProperty("docker.demo.imageName") ?: "demo") as String
+    if (user.isNotEmpty() && password.isNotEmpty()) {
+        auth.value(AuthConfig(user, password, email))
+    }
+    imageName.value(name)
     dockerImageTags.add("1.0")
+    pushImageTag.value(true)
+    pushImage.value(true)
 }
