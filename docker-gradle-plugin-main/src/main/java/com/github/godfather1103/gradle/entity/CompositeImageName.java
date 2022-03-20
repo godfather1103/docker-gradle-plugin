@@ -24,7 +24,7 @@ public class CompositeImageName {
      * @param imageName Image name.
      * @param imageTags List of image tags.
      * @return {@link CompositeImageName}
-     * @throws GradleException
+     * @throws GradleException 相关异常
      */
     public static CompositeImageName create(final String imageName, final List<String> imageTags)
             throws GradleException {

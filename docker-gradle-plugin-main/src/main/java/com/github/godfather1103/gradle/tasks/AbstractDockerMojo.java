@@ -40,7 +40,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * <p>Company:      https://github.com/godfather1103</p>
  * 基础的运行
  *
- * @author 作者: Jack Chu E-mail: chuchuanbao@gmail.com<br/>
+ * @author 作者: Jack Chu E-mail: chuchuanbao@gmail.com
  * <p>
  * 创建时间：2022/3/18 21:31
  * @version 1.0
