@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
-    id("io.github.godfather1103.docker-plugin") version "1.0"
+    id("io.github.godfather1103.docker-plugin") version "1.1"
     id("org.springframework.boot") version "2.5.10"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.5.32"
