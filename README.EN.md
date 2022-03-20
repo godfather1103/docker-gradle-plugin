@@ -100,6 +100,15 @@ docker {
 | <kbd>password</kbd> - Password of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'password'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
 | <kbd>email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` <br/><br/>**Default Value:** <kbd>''</kbd> |
 
+### Configure default docker account information
+> Copy the following to your gradle.properties file.When the corresponding authentication information is not configured in the project, the default account information will be used.
+
+| Attributes                                              | Values                                                                  |
+|:--------------------------------------------------------|:------------------------------------------------------------------------|
+| <kbd>docker.username</kbd> - UserName of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'username'`            |
+| <kbd>docker.password</kbd> - Password of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'password'`            |
+| <kbd>docker.email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` |
+
 
 ## Epilogue
 idea from [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)

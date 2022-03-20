@@ -102,6 +102,15 @@ docker {
 | <kbd>password</kbd> - docker账户的密码  | **允许的值:** <br/><kbd>字符串</kbd> - `'password'` <br/><br/>**默认值:** <kbd>''</kbd>            |
 | <kbd>email</kbd> - docker账户的email  | **允许的值:** <br/><kbd>字符串</kbd> - `'example@example.com'` <br/><br/>**默认值:** <kbd>''</kbd> |
 
+### 配置默认的docker账户信息
+> 用户可以在gradle.properties中配置以下参数作为默认的账户信息，当项目中未配置对应的认证信息信息时，将使用默认的账户信息。  
+
+| 配置项                                       | 属性值                                                     |
+|:------------------------------------------|:--------------------------------------------------------|
+| <kbd>docker.username</kbd> - docker账户的用户名 | **允许的值:** <br/><kbd>字符串</kbd> - `'username'`            |
+| <kbd>docker.password</kbd> - docker账户的密码  | **允许的值:** <br/><kbd>字符串</kbd> - `'password'`            |
+| <kbd>docker.email</kbd> - docker账户的email  | **允许的值:** <br/><kbd>字符串</kbd> - `'example@example.com'` |
+
 
 ## 写在最后
 该插件相关创意来源于[docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
