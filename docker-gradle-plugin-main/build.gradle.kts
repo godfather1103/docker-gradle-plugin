@@ -7,6 +7,8 @@ plugins {
 
 group = "${property("plugin.groupId")}"
 version = "${property("plugin.version")}"
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     implementation(gradleApi())
