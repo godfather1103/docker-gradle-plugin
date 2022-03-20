@@ -1,2 +1,2 @@
 # docker-gradle-plugin
-build or push docker Image.
+构建，推送docker镜像的Gradle插件
