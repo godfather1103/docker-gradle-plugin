@@ -83,6 +83,14 @@ docker {
 }
 ```
 
+## Tasks
+> Plugin introduces the following tasks.
+
+| Task                   | Description          |
+|:-----------------------|:---------------------|
+| <kbd>dockerBuild</kbd> | build  docker image. |
+
+
 ## Setup DSL
 > The following attributes are a part of the Setup DSL <kbd>docker { ... }</kbd> in which allows you to set up the environment and dependencies.  
 
