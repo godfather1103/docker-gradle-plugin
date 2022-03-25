@@ -103,6 +103,7 @@ docker {
 | <kbd>pushImage</kbd> - Whether to push the corresponding image      | **Acceptable Values:** <br/><kbd>Boolean</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                                             |
 | <kbd>pushImageTag</kbd> - Push tag?                                 | **Acceptable Values:** <br/><kbd>Boolean</kbd> - `true` <br/><br/>**Default Value:** <kbd>false</kbd>                                             |
 | <kbd>auth</kbd> - Authentication information                        | **Acceptable Values:** <br/><kbd>AuthConfig Object</kbd> - `new AuthConfig(username,password,email)` <br/><br/>**Default Value:** <kbd>null</kbd> |
+| <kbd>dockerBuildArgs</kbd> - docker build args                      | **Acceptable Values:** <br/><kbd>Map</kbd> - `map["arg1"]="arg"` <br/><br/>**Default Value:** <kbd>null</kbd>                                     |
 
 ### AuthConfig Properties
 

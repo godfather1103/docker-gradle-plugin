@@ -54,8 +54,9 @@ docker {
     if (user.isNotEmpty() && password.isNotEmpty()) {
         auth.value(AuthConfig(user, password, email))
     }
+    dockerBuildArgs.put("GitTag", "1.0")
     imageName.value("$name-kotlin")
     dockerImageTags.add("1.0")
-    pushImageTag.value(true)
-    pushImage.value(true)
+    pushImageTag.value(false)
+    pushImage.value(false)
 }
