@@ -43,6 +43,6 @@ docker {
     }
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
-    pushImageTag.value(true)
-    pushImage.value(true)
+    pushImageTag.value(false)
+    pushImage.value(false)
 }
