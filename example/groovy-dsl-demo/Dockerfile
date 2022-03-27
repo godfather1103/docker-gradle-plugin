@@ -8,8 +8,10 @@ LABEL Email=example@example.com
 ENV LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8
 # 定义工作目录的参数值
 ARG work_dir
+ARG GitTag
 # 设置环境变量
 ENV work_dir=/example/APP/web
+ENV GitTag=${GitTag}
 # 设置工作目录
 WORKDIR ${work_dir}
 # 添加介质到工作目录中

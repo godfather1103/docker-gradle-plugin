@@ -41,6 +41,7 @@ docker {
     if (!user.isEmpty() && !password.isEmpty()) {
         auth.value(new AuthConfig(user, password, email))
     }
+    dockerBuildArgs.put("GitTag", "1.0")
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
     pushImageTag.value(false)
