@@ -256,7 +256,7 @@ public class BuildMojo extends AbstractDockerMojo {
         buildArgs = ext.getDockerBuildArgs().getOrNull();
         healthcheck = ext.getHealthcheck().getOrNull();
         network = ext.getNetwork().getOrNull();
-        this.resources = new ArrayList<>(0);
+        this.resources = ext.getResources().getOrElse(new ArrayList<>(0));
         ext.getProject().getProperties().forEach((k, v) -> {
             if (v != null) {
                 replaceMap.put(k, v.toString());

@@ -1,6 +1,7 @@
 package com.github.godfather1103.gradle.ext
 
 import com.github.godfather1103.gradle.entity.AuthConfig
+import com.github.godfather1103.gradle.entity.Resource
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -109,5 +110,7 @@ open class DockerPluginExtension(val project: Project) {
     val tags: SetProperty<String> = project.objects.setProperty(String::class.java)
 
     val dockerBuildDependsOn: SetProperty<String> = project.objects.setProperty(String::class.java)
+
+    val resources: ListProperty<Resource> = project.objects.listProperty(Resource::class.java)
 
 }
