@@ -116,6 +116,16 @@ docker {
 | <kbd>password</kbd> - docker账户的密码  | **允许的值:** <br/><kbd>字符串</kbd> - `'password'` <br/><br/>**默认值:** <kbd>''</kbd>            |
 | <kbd>email</kbd> - docker账户的email  | **允许的值:** <br/><kbd>字符串</kbd> - `'example@example.com'` <br/><br/>**默认值:** <kbd>''</kbd> |
 
+### Resource对象属性值
+
+| 配置项                                    | 属性值                                                                                      |
+|:---------------------------------------|:-----------------------------------------------------------------------------------------|
+| <kbd>directory</kbd> - 相关路径            | **允许的值:** <br/><kbd>字符串</kbd> - `'/'` <br/><br/>**默认值:** <kbd>''</kbd>                   |
+| <kbd>targetPath</kbd> - 目标路径           | **允许的值:** <br/><kbd>字符串</kbd> - `'build/docker'` <br/><br/>**默认值:** <kbd>''</kbd>        |
+| <kbd>includes</kbd> - 引入的资源(Ant-style) | **允许的值:** <br/><kbd>字符串列表</kbd> - `['*.jar','*.class']` <br/><br/>**默认值:** <kbd>[]</kbd> |
+| <kbd>excludes</kbd> - 排除的资源(Ant-style) | **允许的值:** <br/><kbd>字符串列表</kbd> - `['*.log','log/**']` <br/><br/>**默认值:** <kbd>[]</kbd>  |
+
+
 ### 配置默认的docker账户信息
 > 用户可以在gradle.properties中配置以下参数作为默认的账户信息，当项目中未配置对应的认证信息信息时，将使用默认的账户信息。  
 
