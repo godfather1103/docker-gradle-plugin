@@ -106,6 +106,7 @@ docker {
 | <kbd>pushImageTag</kbd> - 是否推送tag           | **允许的值:** <br/><kbd>布尔值</kbd> - `true` <br/><br/>**默认值:** <kbd>false</kbd>                              |
 | <kbd>auth</kbd> - 认证信息                      | **允许的值:** <br/><kbd>AuthConfig对象</kbd> - `new AuthConfig(用户名,密码,邮箱)` <br/><br/>**默认值:** <kbd>null</kbd> |
 | <kbd>dockerBuildArgs</kbd> - docker build参数 | **允许的值:** <br/><kbd>Map</kbd> - `map["arg1"]="arg"` <br/><br/>**默认值:** <kbd>null</kbd>                  |
+| <kbd>resources</kbd> - 构建过程中复制的资源           | **允许的值:** <br/><kbd>List[Resource]</kbd> - `[Resource1,...,ResourceN]` <br/><br/>**默认值:** <kbd>[]</kbd> |
 
 ### AuthConfig对象属性值
 
