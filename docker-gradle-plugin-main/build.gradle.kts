@@ -3,6 +3,7 @@ plugins {
     id("com.gradle.plugin-publish") version "0.15.0"
     `java-gradle-plugin`
     kotlin("jvm") version "1.4.32"
+    id("io.github.godfather1103.gradle-base-plugin") version "1.5"
 }
 
 group = "${property("plugin.groupId")}"
@@ -23,6 +24,10 @@ dependencies {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType(Javadoc::class.java) {
+    options.encoding = "UTF-8"
 }
 
 gradlePlugin {
