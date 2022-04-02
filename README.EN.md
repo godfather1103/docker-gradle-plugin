@@ -114,6 +114,16 @@ docker {
 | <kbd>password</kbd> - Password of docker account | **Acceptable Values:** <br/><kbd>String</kbd> - `'password'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
 | <kbd>email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` <br/><br/>**Default Value:** <kbd>''</kbd> |
 
+### Resource Properties
+
+| Attributes                                            | Values                                                                                                                 |
+|:------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------|
+| <kbd>directory</kbd> - From path                      | **Acceptable Values:** <br/><kbd>String</kbd> - `'/'` <br/><br/>**Default Value:** <kbd>''</kbd>                       |
+| <kbd>targetPath</kbd> - Target path                   | **Acceptable Values:** <br/><kbd>String</kbd> - `'build/docker'` <br/><br/>**Default Value:** <kbd>''</kbd>            |
+| <kbd>includes</kbd> - Introduced resources(Ant-style) | **Acceptable Values:** <br/><kbd>List[String]</kbd> - `['*.jar','*.class']` <br/><br/>**Default Value:** <kbd>[]</kbd> |
+| <kbd>excludes</kbd> - Excluded resources(Ant-style)   | **Acceptable Values:** <br/><kbd>List[String]</kbd> - `['*.log','log/**']` <br/><br/>**Default Value:** <kbd>[]</kbd>  |
+
+
 ### Configure default docker account information
 > Copy the following to your gradle.properties file.When the corresponding authentication information is not configured in the project, the default account information will be used.
 
