@@ -13,7 +13,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     implementation(gradleApi())
-    implementation("com.spotify:docker-client:8.16.0:shaded")
+    implementation("com.spotify:docker-client:8.16.0")
     implementation("com.google.auth:google-auth-library-oauth2-http:0.6.0")
     implementation("com.typesafe:config:1.2.0")
     implementation("org.eclipse.jgit:org.eclipse.jgit:5.13.0.202109080827-r")

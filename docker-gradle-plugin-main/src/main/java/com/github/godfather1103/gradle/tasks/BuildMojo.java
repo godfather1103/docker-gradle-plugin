@@ -218,7 +218,7 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private String network;
 
-    private List<Resource> resources;
+    private List<Resource> resources = new ArrayList<>(0);
 
     private final Map<String, String> replaceMap = new HashMap<>(0);
 
@@ -256,7 +256,7 @@ public class BuildMojo extends AbstractDockerMojo {
         buildArgs = ext.getDockerBuildArgs().getOrNull();
         healthcheck = ext.getHealthcheck().getOrNull();
         network = ext.getNetwork().getOrNull();
-        this.resources = ext.getResources().getOrElse(new ArrayList<>(0));
+        this.resources.addAll(ext.getResources().getOrElse(new ArrayList<>(0)));
         ext.getProject().getProperties().forEach((k, v) -> {
             if (v != null) {
                 replaceMap.put(k, v.toString());
