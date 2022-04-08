@@ -1,4 +1,5 @@
 import com.github.godfather1103.gradle.entity.AuthConfig
+import com.github.godfather1103.gradle.entity.Resource
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -59,4 +60,10 @@ docker {
     dockerImageTags.add("1.0")
     pushImageTag.value(false)
     pushImage.value(false)
+    val r = Resource()
+    r.directory = projectDir.absolutePath + "/build/libs"
+    r.targetPath = "target"
+    r.includes = ArrayList<String>().plus("*.jar")
+    resources.add(r)
+
 }

@@ -222,7 +222,6 @@ public class BuildMojo extends AbstractDockerMojo {
 
     private final Map<String, String> replaceMap = new HashMap<>(0);
 
-
     public BuildMojo(DockerPluginExtension ext) {
         super(ext);
         dockerDirectory = ext.getDockerDirectory().getOrNull();
@@ -358,11 +357,10 @@ public class BuildMojo extends AbstractDockerMojo {
                     } else {
                         final Resource resource = new Resource();
                         resource.setDirectory(dockerDirectory);
-                        resource.setExcludes(new ArrayList<String>(4) {{
-                            add("gradle/**");
-                            add(".gradle/**");
-                            add("*gradle*");
-                            add("src/**");
+                        resource.setIncludes(new ArrayList<String>(3) {{
+                            add("build/libs/**");
+                            add("Docker*");
+                            add("docker/**");
                         }});
                         resources.add(resource);
                         copyResources(destination);
