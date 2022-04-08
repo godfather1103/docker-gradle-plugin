@@ -63,7 +63,7 @@ docker {
     val r = Resource()
     r.directory = projectDir.absolutePath + "/build/libs"
     r.targetPath = "target"
-    r.includes = ArrayList<String>().plus("*.jar")
+    r.addIncludes("*.jar")
     resources.add(r)
 
 }
