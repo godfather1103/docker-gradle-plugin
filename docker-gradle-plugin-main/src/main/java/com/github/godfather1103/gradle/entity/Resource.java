@@ -2,7 +2,9 @@ package com.github.godfather1103.gradle.entity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>Title:        Godfather1103's Github</p>
@@ -26,7 +28,17 @@ public class Resource implements Serializable, Cloneable {
     }
 
     public void setIncludes(List<String> includes) {
-        this.includes = includes;
+        this.includes = Optional.ofNullable(includes).orElse(new ArrayList<>(0));
+    }
+
+    public Resource addIncludes(String include) {
+        this.includes.add(include);
+        return this;
+    }
+
+    public Resource addIncludes(Collection<String> includes) {
+        this.includes.addAll(includes);
+        return this;
     }
 
     public List<String> getExcludes() {
@@ -34,7 +46,17 @@ public class Resource implements Serializable, Cloneable {
     }
 
     public void setExcludes(List<String> excludes) {
-        this.excludes = excludes;
+        this.excludes = Optional.ofNullable(excludes).orElse(new ArrayList<>(0));
+    }
+
+    public Resource addExcludes(String exclude) {
+        this.excludes.add(exclude);
+        return this;
+    }
+
+    public Resource addExcludes(Collection<String> excludes) {
+        this.excludes.addAll(excludes);
+        return this;
     }
 
     public String getDirectory() {

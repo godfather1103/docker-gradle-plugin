@@ -69,6 +69,10 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private String dockerDirectory;
 
+    private Set<String> dockerDirectoryIncludes;
+
+    private Set<String> dockerDirectoryExcludes;
+
     /**
      * Flag to skip docker build, making build goal a no-op. This can be useful when docker:build
      * is bound to package goal, and you want to build a jar but not a container. Defaults to false.
@@ -225,6 +229,8 @@ public class BuildMojo extends AbstractDockerMojo {
     public BuildMojo(DockerPluginExtension ext) {
         super(ext);
         dockerDirectory = ext.getDockerDirectory().getOrNull();
+        dockerDirectoryIncludes = ext.getDockerDirectoryIncludes().getOrNull();
+        dockerDirectoryExcludes = ext.getDockerDirectoryExcludes().getOrNull();
         skipDockerBuild = ext.getSkipDockerBuild().getOrElse(false);
         pullOnBuild = ext.getPullOnBuild().getOrElse(false);
         noCache = ext.getNoCache().getOrElse(false);
@@ -357,11 +363,18 @@ public class BuildMojo extends AbstractDockerMojo {
                     } else {
                         final Resource resource = new Resource();
                         resource.setDirectory(dockerDirectory);
-                        resource.setIncludes(new ArrayList<String>(3) {{
-                            add("build/libs/**");
-                            add("Docker*");
-                            add("docker/**");
-                        }});
+                        if (Objects.isNull(dockerDirectoryIncludes)
+                                && Objects.isNull(dockerDirectoryExcludes)) {
+                            resource.addIncludes("build/libs/**")
+                                    .addIncludes("Docker*")
+                                    .addIncludes("docker/**");
+                        }
+                        if (Objects.nonNull(dockerDirectoryIncludes)) {
+                            resource.addIncludes(dockerDirectoryIncludes);
+                        }
+                        if (Objects.nonNull(dockerDirectoryExcludes)) {
+                            resource.addExcludes(dockerDirectoryExcludes);
+                        }
                         resources.add(resource);
                         copyResources(destination);
                     }
