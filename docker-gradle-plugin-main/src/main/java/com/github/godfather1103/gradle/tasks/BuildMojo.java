@@ -363,12 +363,13 @@ public class BuildMojo extends AbstractDockerMojo {
                     } else {
                         final Resource resource = new Resource();
                         resource.setDirectory(dockerDirectory);
-                        if (Objects.isNull(dockerDirectoryIncludes)
-                                && Objects.isNull(dockerDirectoryExcludes)) {
-                            resource.addIncludes("build/libs/**")
-                                    .addIncludes("Docker*")
-                                    .addIncludes("docker/**");
-                        }
+                        resource.addIncludes("build/libs/**")
+                                .addIncludes("Docker*")
+                                .addIncludes("docker/**")
+                                .addExcludes("gradle/**")
+                                .addExcludes(".gradle/**")
+                                .addExcludes("*gradle*")
+                                .addExcludes("src/**");
                         if (Objects.nonNull(dockerDirectoryIncludes)) {
                             resource.addIncludes(dockerDirectoryIncludes);
                         }
