@@ -113,4 +113,8 @@ open class DockerPluginExtension(val project: Project) {
 
     val resources: ListProperty<Resource> = project.objects.listProperty(Resource::class.java)
 
+    val dockerDirectoryIncludes: SetProperty<String> = project.objects.setProperty(String::class.java)
+
+    val dockerDirectoryExcludes: SetProperty<String> = project.objects.setProperty(String::class.java)
+
 }
