@@ -65,5 +65,4 @@ docker {
     r.targetPath = "target"
     r.addIncludes("*.jar")
     resources.add(r)
-
 }

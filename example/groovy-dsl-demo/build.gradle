@@ -1,4 +1,5 @@
 import com.github.godfather1103.gradle.entity.AuthConfig
+import com.github.godfather1103.gradle.entity.Resource
 
 plugins {
     id 'org.springframework.boot' version '2.5.10'
@@ -46,4 +47,9 @@ docker {
     dockerImageTags.add("1.0")
     pushImageTag.value(false)
     pushImage.value(false)
+    var r = new Resource()
+    r.directory = projectDir.absolutePath + "/build/libs"
+    r.targetPath = "target"
+    r.addIncludes("*.jar")
+    resources.add(r)
 }
