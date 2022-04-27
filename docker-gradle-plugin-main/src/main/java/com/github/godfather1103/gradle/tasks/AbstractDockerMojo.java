@@ -185,8 +185,10 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
         return ContainerRegistryAuthSupplier.forCredentials(credentials).build();
     }
 
-    protected RegistryAuth registryAuth() throws GradleException {
+    protected AuthConfig makeAuthConfig() {
+        // 1、首先从项目的构建脚本中读取
         AuthConfig authConfig = ext.getAuth().getOrNull();
+        // 2、没有的话看gradle.properties文件中是否有相关配置
         if (authConfig == null) {
             Object obj = ext.getProject().findProperty("docker.username");
             String username = obj == null ? null : obj.toString();
@@ -198,9 +200,22 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
                 authConfig = new AuthConfig(username, password, email);
             }
         }
+        // 3、最后环境看一下环境变量中是否有相关配置
+        if (authConfig == null) {
+            String username = System.getProperty("docker.username");
+            String password = System.getProperty("docker.password");
+            String email = System.getProperty("docker.email");
+            if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
+                authConfig = new AuthConfig(username, password, email);
+            }
+        }
+        return authConfig;
+    }
+
+    protected RegistryAuth registryAuth() throws GradleException {
+        AuthConfig authConfig = makeAuthConfig();
         if (authConfig != null) {
             final RegistryAuth.Builder registryAuthBuilder = RegistryAuth.builder();
-
             final String username = authConfig.getUsername();
             final String password = authConfig.getPassword();
             final String email = authConfig.getEmail();
