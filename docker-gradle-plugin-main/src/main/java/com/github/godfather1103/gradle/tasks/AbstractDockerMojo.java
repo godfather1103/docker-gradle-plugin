@@ -5,7 +5,6 @@ import com.github.godfather1103.gradle.ext.DockerPluginExtension;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -20,6 +19,7 @@ import com.spotify.docker.client.auth.gcr.ContainerRegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryConfigs;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * <p>Title:        Godfather1103's Github</p>
@@ -140,7 +140,7 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
     protected Optional<DockerCertificatesStore> dockerCertificates()
             throws DockerCertificateException {
         String dockerCertPath = ext.getDockerCertPath().getOrNull();
-        if (!isNullOrEmpty(dockerCertPath)) {
+        if (isNotEmpty(dockerCertPath)) {
             return DockerCertificates.builder()
                     .dockerCertPath(Paths.get(dockerCertPath)).build();
         } else {
@@ -191,21 +191,21 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
         // 2、没有的话看gradle.properties文件中是否有相关配置
         if (authConfig == null) {
             Object obj = ext.getProject().findProperty("docker.username");
-            String username = obj == null ? null : obj.toString();
+            String username = obj == null ? "" : obj.toString();
             obj = ext.getProject().findProperty("docker.password");
-            String password = obj == null ? null : obj.toString();
+            String password = obj == null ? "" : obj.toString();
             obj = ext.getProject().findProperty("docker.email");
-            String email = obj == null ? null : obj.toString();
-            if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
+            String email = obj == null ? "" : obj.toString();
+            if (isNotEmpty(username) && isNotEmpty(password)) {
                 authConfig = new AuthConfig(username, password, email);
             }
         }
         // 3、最后环境看一下环境变量中是否有相关配置
         if (authConfig == null) {
-            String username = System.getProperty("docker.username");
-            String password = System.getProperty("docker.password");
-            String email = System.getProperty("docker.email");
-            if (!Strings.isNullOrEmpty(username) && !Strings.isNullOrEmpty(password)) {
+            String username = StringUtils.trimToEmpty(System.getenv("docker.username"));
+            String password = StringUtils.trimToEmpty(System.getenv("docker.password"));
+            String email = StringUtils.trimToEmpty(System.getenv("docker.email"));
+            if (isNotEmpty(username) && isNotEmpty(password)) {
                 authConfig = new AuthConfig(username, password, email);
             }
         }
@@ -219,17 +219,17 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
             final String username = authConfig.getUsername();
             final String password = authConfig.getPassword();
             final String email = authConfig.getEmail();
-            if (!isNullOrEmpty(username)) {
+            if (isNotEmpty(username)) {
                 registryAuthBuilder.username(username);
             }
-            if (!isNullOrEmpty(email)) {
+            if (isNotEmpty(email)) {
                 registryAuthBuilder.email(email);
             }
-            if (!isNullOrEmpty(password)) {
+            if (isNotEmpty(password)) {
                 registryAuthBuilder.password(password);
             }
             String registryUrl = ext.getRegistryUrl().getOrNull();
-            if (!isNullOrEmpty(registryUrl)) {
+            if (isNotEmpty(registryUrl)) {
                 registryAuthBuilder.serverAddress(registryUrl);
             }
             return registryAuthBuilder.build();
@@ -284,7 +284,7 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
         try {
             builder = getBuilder();
             final String dockerHost = rawDockerHost();
-            if (!isNullOrEmpty(dockerHost)) {
+            if (isNotEmpty(dockerHost)) {
                 builder.uri(dockerHost);
             }
             final Optional<DockerCertificatesStore> certs = dockerCertificates();
