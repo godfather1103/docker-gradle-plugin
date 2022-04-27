@@ -18,7 +18,7 @@ public class DockerPlugin implements Plugin<Project> {
      */
     @Override
     public void apply(Project target) {
-        System.out.println("激活了插件");
+        System.out.println("\u6fc0\u6d3b\u4e86\u63d2\u4ef6");
         DockerPluginExtension docker = target.getExtensions().create("docker", DockerPluginExtension.class, target);
         TaskProvider<Task> dockerBuild = target.getTasks().register("dockerBuild");
         dockerBuild.configure(e -> {
