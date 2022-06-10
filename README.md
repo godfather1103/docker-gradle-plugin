@@ -13,7 +13,7 @@ Gitee/码云: [https://gitee.com/godfather1103/docker-gradle-plugin](https://git
 // groovy DSL
 // Using the plugins DSL:
 plugins {
-  id "io.github.godfather1103.docker-plugin" version "1.1"
+  id "io.github.godfather1103.docker-plugin" version "1.2.3"
 }
 
 // Using legacy plugin application:
@@ -24,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.github.godfather1103:docker-plugin:1.1"
+        classpath "io.github.godfather1103:docker-plugin:1.2.3"
     }
 }
 apply plugin: "io.github.godfather1103.docker-plugin"
@@ -32,7 +32,7 @@ apply plugin: "io.github.godfather1103.docker-plugin"
 // kotlin DSL
 // Using the plugins DSL:
 plugins {
-    id("io.github.godfather1103.docker-plugin") version "1.1"
+    id("io.github.godfather1103.docker-plugin") version "1.2.3"
 }
 
 // Using legacy plugin application:
@@ -43,7 +43,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("io.github.godfather1103:docker-plugin:1.1")
+        classpath("io.github.godfather1103:docker-plugin:1.2.3")
     }
 }
 apply(plugin = "io.github.godfather1103.docker-plugin")
