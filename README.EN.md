@@ -1,6 +1,9 @@
 # docker-gradle-plugin
 > build, push the gradle plug-in of docker image.  
 
+## Pre Description 
+1. There are bugs in versions lower than or including 1.2, but they cannot be deleted after uploading, so it is recommended to use the version >= 1.2.1
+
 ## Code Repository
 GitHub: [https://github.com/godfather1103/docker-gradle-plugin](https://github.com/godfather1103/docker-gradle-plugin)  
 Gitee: [https://gitee.com/godfather1103/docker-gradle-plugin](https://gitee.com/godfather1103/docker-gradle-plugin)

@@ -2,6 +2,9 @@
 
 # docker-gradle-plugin
 > 构建，推送docker镜像的Gradle插件  
+ 
+## 前置说明
+1. 低于1.2（含）的版本有bug，但是上传了之后没法删除，所以建议使用>=1.2.1的版本
 
 ## 代码库
 GitHub: [https://github.com/godfather1103/docker-gradle-plugin](https://github.com/godfather1103/docker-gradle-plugin)  
