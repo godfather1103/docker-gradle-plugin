@@ -145,7 +145,7 @@ Alipay
 <img src="https://s4.ax1x.com/2021/12/16/T9B04f.png" alt="支付宝" width="200" height="300" align="bottom" />   
 <img src="https://s4.ax1x.com/2021/12/16/T9BI8U.png" alt="支付宝" width="200" height="300" align="bottom" />   
 WeChatPay  
-<img src="https://s.pc.qq.com/tousu/img/20200815/9185636_1597474776.jpg" alt="微信支付" width="300" height="320" align="bottom" />
+<img src="https://s1.ax1x.com/2022/07/13/jRzg4e.png" alt="微信支付" width="300" height="320" align="bottom" />
 
 
 ## Epilogue
