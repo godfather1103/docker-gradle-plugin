@@ -144,11 +144,11 @@ docker {
 [PayPal](https://paypal.me/godfather1103?locale.x=zh_XC)
 
 支付宝  
-<img src="https://s4.ax1x.com/2021/12/16/T9B04f.png" alt="支付宝" width="200" height="300" align="bottom" />   
-<img src="https://s4.ax1x.com/2021/12/16/T9BI8U.png" alt="支付宝" width="200" height="300" align="bottom" />   
-微信  
-<img src="https://s1.ax1x.com/2022/07/13/jRzg4e.png" alt="微信支付" width="300" height="320" align="bottom" />
+![支付宝](pic/hb-300.png)
+![支付宝](pic/Alipay-300.png)
 
+微信  
+![微信支付](pic/WeChat-300.png)
 
 ## 写在最后
 该插件相关创意来源于[docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
