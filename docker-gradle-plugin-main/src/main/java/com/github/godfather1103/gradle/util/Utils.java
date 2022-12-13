@@ -48,7 +48,7 @@ public class Utils {
             }
         }
 
-        return new String[] { repo, tag };
+        return new String[]{repo, tag};
     }
 
     public static void pushImage(final DockerClient docker, final String imageName,
