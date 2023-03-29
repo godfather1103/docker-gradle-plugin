@@ -83,6 +83,9 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
 
     public AbstractDockerMojo(DockerPluginExtension ext) {
         this.ext = ext;
+    }
+
+    public void initExt(DockerPluginExtension ext) {
         this.dockerHost = ext.getDockerHost().getOrNull();
         this.dockerCertPath = ext.getDockerCertPath().getOrNull();
         this.serverId = ext.getServerId().getOrNull();
@@ -121,6 +124,8 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
             getLog().info("Skipping docker goal");
             return;
         }
+        // 读取最新的值
+        initExt(ext);
         try (DockerClient client = buildDockerClient()) {
             execute(client);
         } catch (Exception e) {

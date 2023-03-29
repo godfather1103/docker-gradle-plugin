@@ -228,6 +228,11 @@ public class BuildMojo extends AbstractDockerMojo {
 
     public BuildMojo(DockerPluginExtension ext) {
         super(ext);
+    }
+
+    @Override
+    public void initExt(DockerPluginExtension ext) {
+        super.initExt(ext);
         dockerDirectory = ext.getDockerDirectory().getOrNull();
         dockerDirectoryIncludes = ext.getDockerDirectoryIncludes().getOrNull();
         dockerDirectoryExcludes = ext.getDockerDirectoryExcludes().getOrNull();
