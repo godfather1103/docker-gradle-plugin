@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * <p>Copyright:    Copyright (c) 2022</p>
  * <p>Company:      https://github.com/godfather1103</p>
  *
- * @author 作者: Jack Chu E-mail: chuchuanbao@gmail.com<br/>
+ * @author 作者: Jack Chu E-mail: chuchuanbao@gmail.com
  * <p>
  * 创建时间：2022/12/13 17:14
  * @version 1.0
