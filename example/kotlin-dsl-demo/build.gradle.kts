@@ -21,6 +21,13 @@ configurations {
     }
 }
 
+repositories {
+    mavenLocal()
+    maven {
+        url = uri("https://maven.aliyun.com/nexus/content/groups/public")
+    }
+    mavenCentral()
+}
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
