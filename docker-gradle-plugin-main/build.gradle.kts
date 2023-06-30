@@ -1,3 +1,22 @@
+buildscript {
+    repositories {
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+        maven {
+            url = uri("https://maven.aliyun.com/repository/gradle-plugin/")
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri("https://maven.aliyun.com/nexus/content/groups/public")
+    }
+    mavenCentral()
+}
+
 plugins {
     java
     id("com.gradle.plugin-publish") version "0.15.0"
