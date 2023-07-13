@@ -2,6 +2,14 @@ import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.godfather1103.gradle.entity.Resource
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     java
     id("io.github.godfather1103.docker-plugin")
@@ -23,9 +31,6 @@ configurations {
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri("https://maven.aliyun.com/nexus/content/groups/public")
-    }
     mavenCentral()
 }
 

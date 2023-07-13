@@ -1,19 +1,13 @@
 buildscript {
     repositories {
-        maven {
-            url = uri("https://plugins.gradle.org/m2/")
-        }
-        maven {
-            url = uri("https://maven.aliyun.com/repository/gradle-plugin/")
-        }
+        mavenLocal()
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri("https://maven.aliyun.com/nexus/content/groups/public")
-    }
     mavenCentral()
 }
 
@@ -30,8 +24,12 @@ version = "${property("plugin.version")}"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
 
+val dockerJavaVersion = "3.3.2"
+
 dependencies {
     implementation(gradleApi())
+    implementation("com.github.docker-java:docker-java-core:${dockerJavaVersion}")
+    implementation("com.github.docker-java:docker-java-transport-netty:${dockerJavaVersion}")
     implementation("com.spotify:docker-client:8.16.0")
     implementation("com.google.auth:google-auth-library-oauth2-http:0.6.0")
     implementation("com.typesafe:config:1.2.0")
