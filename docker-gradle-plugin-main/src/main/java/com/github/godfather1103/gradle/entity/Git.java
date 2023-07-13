@@ -1,6 +1,6 @@
 package com.github.godfather1103.gradle.entity;
 
-import com.spotify.docker.client.exceptions.DockerException;
+import com.github.dockerjava.api.exception.DockerException;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;

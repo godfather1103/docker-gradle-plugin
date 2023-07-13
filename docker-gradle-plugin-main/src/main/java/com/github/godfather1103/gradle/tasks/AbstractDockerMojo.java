@@ -8,15 +8,12 @@ import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
 import com.github.godfather1103.gradle.entity.AuthConfig;
 import com.github.godfather1103.gradle.ext.DockerPluginExtension;
 import com.google.common.base.Optional;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.messages.RegistryAuth;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * <p>Title:        Godfather1103's Github</p>
@@ -87,10 +84,9 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
         return ext.getDockerHost().getOrNull();
     }
 
-    protected Optional<String> dockerCertificates()
-            throws DockerCertificateException {
+    protected Optional<String> dockerCertificates() {
         String dockerCertPath = ext.getDockerCertPath().getOrNull();
-        if (isNotEmpty(dockerCertPath)) {
+        if (StringUtils.isNotEmpty(dockerCertPath)) {
             return Optional.fromNullable(ext.getDockerCertPath().getOrNull());
         } else {
             return Optional.absent();
@@ -108,7 +104,7 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
             String password = obj == null ? "" : obj.toString();
             obj = ext.getProject().findProperty("docker.email");
             String email = obj == null ? "" : obj.toString();
-            if (isNotEmpty(username) && isNotEmpty(password)) {
+            if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
                 authConfig = new AuthConfig(username, password, email);
             }
         }
@@ -117,73 +113,58 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
             String username = StringUtils.trimToEmpty(System.getenv("docker.username"));
             String password = StringUtils.trimToEmpty(System.getenv("docker.password"));
             String email = StringUtils.trimToEmpty(System.getenv("docker.email"));
-            if (isNotEmpty(username) && isNotEmpty(password)) {
+            if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
                 authConfig = new AuthConfig(username, password, email);
             }
         }
         return authConfig;
     }
 
-    protected RegistryAuth registryAuth() throws GradleException {
+    protected void registryAuth(DefaultDockerClientConfig.Builder configBuilder) throws GradleException {
         AuthConfig authConfig = makeAuthConfig();
         if (authConfig != null) {
-            final RegistryAuth.Builder registryAuthBuilder = RegistryAuth.builder();
             final String username = authConfig.getUsername();
             final String password = authConfig.getPassword();
             final String email = authConfig.getEmail();
-            if (isNotEmpty(username)) {
-                registryAuthBuilder.username(username);
+            if (StringUtils.isNotEmpty(username)) {
+                configBuilder.withRegistryUsername(username);
             }
-            if (isNotEmpty(email)) {
-                registryAuthBuilder.email(email);
+            if (StringUtils.isNotEmpty(email)) {
+                configBuilder.withRegistryEmail(email);
             }
-            if (isNotEmpty(password)) {
-                registryAuthBuilder.password(password);
+            if (StringUtils.isNotEmpty(password)) {
+                configBuilder.withRegistryPassword(password);
             }
-            String registryUrl = ext.getRegistryUrl().getOrNull();
-            if (isNotEmpty(registryUrl)) {
-                registryAuthBuilder.serverAddress(registryUrl);
-            }
-            return registryAuthBuilder.build();
+            configBuilder.withRegistryUrl(serverIdFor());
         } else {
             // settings.xml has no entry for the configured serverId, warn the user
             getLog().warn("No entry found, cannot configure authentication for that registry");
         }
-        return null;
     }
 
-    private String serverIdFor(RegistryAuth registryAuth) {
-        if (ext.getServerId().getOrNull() != null) {
-            return ext.getServerId().getOrNull();
+    private String serverIdFor() {
+        String serverId = ext.getServerId().getOrNull();
+        if (StringUtils.isNotEmpty(serverId)) {
+            return serverId;
         }
-        if (registryAuth.serverAddress() != null) {
-            return registryAuth.serverAddress();
+        String registryUrl = ext.getRegistryUrl().getOrNull();
+        if (StringUtils.isNotEmpty(registryUrl)) {
+            return ext.getRegistryUrl().getOrNull();
         }
         return "index.docker.io";
     }
 
     protected DockerClient buildDockerClient() throws GradleException {
-        final DefaultDockerClientConfig.Builder configBuilder;
-        try {
-            configBuilder = DefaultDockerClientConfig.createDefaultConfigBuilder();
-            final String dockerHost = rawDockerHost();
-            if (isNotEmpty(dockerHost)) {
-                configBuilder.withDockerHost(dockerHost);
-            }
-            final Optional<String> certs = dockerCertificates();
-            if (certs.isPresent()) {
-                configBuilder.withDockerCertPath(certs.get());
-            }
-        } catch (DockerCertificateException ex) {
-            throw new GradleException("Cannot build DockerClient due to certificate problem", ex);
+        final DefaultDockerClientConfig.Builder configBuilder = DefaultDockerClientConfig.createDefaultConfigBuilder();
+        final String dockerHost = rawDockerHost();
+        if (StringUtils.isNotEmpty(dockerHost)) {
+            configBuilder.withDockerHost(dockerHost);
         }
-        final RegistryAuth registryAuth = registryAuth();
-        if (registryAuth != null) {
-            configBuilder.withRegistryUsername(registryAuth.username());
-            configBuilder.withRegistryPassword(registryAuth.password());
-            configBuilder.withRegistryEmail(registryAuth.email());
-            configBuilder.withRegistryUrl(serverIdFor(registryAuth));
+        final Optional<String> certs = dockerCertificates();
+        if (certs.isPresent()) {
+            configBuilder.withDockerCertPath(certs.get());
         }
+        registryAuth(configBuilder);
         DockerClientConfig config = configBuilder.build();
         return DockerClientImpl.getInstance(config)
                 .withDockerCmdExecFactory(factory);
