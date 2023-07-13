@@ -446,6 +446,9 @@ public class BuildMojo extends AbstractDockerMojo {
 
     private void tagImage(final DockerClient docker, String imageId, boolean forceTags) throws DockerException, GradleException {
         final String imageNameWithoutTag = parseImageName(imageName)[0];
+        // 构建latest
+        docker.tagImageCmd(imageId, imageNameWithoutTag, "").withForce(forceTags).exec();
+        // 构建其他tag
         for (final String imageTag : imageTags) {
             if (!isNullOrEmpty(imageTag)) {
                 getLog().info("Tagging " + imageName + " with " + imageTag);

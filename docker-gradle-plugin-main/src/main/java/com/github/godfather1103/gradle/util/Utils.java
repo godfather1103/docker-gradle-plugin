@@ -6,6 +6,7 @@ import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.PushResponseItem;
 import com.github.godfather1103.gradle.entity.CompositeImageName;
 import com.github.godfather1103.gradle.entity.DockerBuildInformation;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 
@@ -72,7 +73,12 @@ public class Utils {
                     @Override
                     public void onNext(PushResponseItem object) {
                         super.onNext(object);
-                        System.out.println(object.getStatus());
+                        String msg = StringUtils.trimToEmpty(object.getId())
+                                + ": "
+                                + StringUtils.trimToEmpty(object.getStatus())
+                                + " "
+                                + StringUtils.trimToEmpty(object.getProgress());
+                        System.out.println(msg);
                         if (buildInfo != null && object.getAux() != null) {
                             final String imageNameWithoutTag = parseImageName(imageName)[0];
                             buildInfo.setDigest(imageNameWithoutTag + "@" + object.getAux().getDigest());
@@ -136,7 +142,12 @@ public class Utils {
                 @Override
                 public void onNext(PushResponseItem object) {
                     super.onNext(object);
-                    System.out.println(object.getStatus());
+                    String msg = StringUtils.trimToEmpty(object.getId())
+                            + ": "
+                            + StringUtils.trimToEmpty(object.getStatus())
+                            + " "
+                            + StringUtils.trimToEmpty(object.getProgress());
+                    System.out.println(msg);
                 }
             }).awaitCompletion();
         }
