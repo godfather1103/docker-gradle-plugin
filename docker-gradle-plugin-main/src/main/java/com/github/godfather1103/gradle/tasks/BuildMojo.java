@@ -366,7 +366,6 @@ public class BuildMojo extends AbstractDockerMojo {
                         resources.add(resource);
                         copyResources(destination);
                     }
-
                     String imageId = buildImage(dockerClient, destination);
                     tagImage(dockerClient, imageId, forceTags);
                     final DockerBuildInformation buildInfo = new DockerBuildInformation(imageName, getLog());

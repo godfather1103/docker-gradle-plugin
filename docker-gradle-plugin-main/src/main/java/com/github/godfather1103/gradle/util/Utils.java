@@ -72,6 +72,7 @@ public class Utils {
                     @Override
                     public void onNext(PushResponseItem object) {
                         super.onNext(object);
+                        System.out.println(object.getStatus());
                         if (buildInfo != null && object.getAux() != null) {
                             final String imageNameWithoutTag = parseImageName(imageName)[0];
                             buildInfo.setDigest(imageNameWithoutTag + "@" + object.getAux().getDigest());
@@ -115,8 +116,7 @@ public class Utils {
                                     String imageName,
                                     List<String> imageTags,
                                     Logger log,
-                                    boolean skipPush)
-            throws GradleException, InterruptedException {
+                                    boolean skipPush) throws GradleException, InterruptedException {
 
         if (skipPush) {
             log.info("Skipping docker push");
@@ -132,7 +132,13 @@ public class Utils {
         for (final String imageTag : compositeImageName.getImageTags()) {
             final String imageNameWithTag = compositeImageName.getName() + ":" + imageTag;
             log.info("Pushing " + imageNameWithTag);
-            docker.pushImageCmd(imageNameWithTag).start().awaitCompletion();
+            docker.pushImageCmd(imageNameWithTag).exec(new ResultCallback.Adapter<PushResponseItem>() {
+                @Override
+                public void onNext(PushResponseItem object) {
+                    super.onNext(object);
+                    System.out.println(object.getStatus());
+                }
+            }).awaitCompletion();
         }
     }
 
