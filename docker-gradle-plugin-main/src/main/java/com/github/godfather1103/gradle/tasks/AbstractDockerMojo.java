@@ -55,7 +55,7 @@ public abstract class AbstractDockerMojo implements Action<DockerClient> {
     }
 
     public int getReadTimeout() {
-        return ext.getReadTimeout().getOrElse(45000);
+        return ext.getReadTimeout().getOrElse(0);
     }
 
     public int getRetryPushCount() {

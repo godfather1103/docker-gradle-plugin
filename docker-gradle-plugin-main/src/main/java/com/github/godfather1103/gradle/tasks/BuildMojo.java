@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import io.vavr.control.Try;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
 import org.gradle.internal.impldep.org.codehaus.plexus.util.FileUtils;
@@ -419,16 +420,34 @@ public class BuildMojo extends AbstractDockerMojo {
     private String buildImage(final DockerClient docker, final String buildDir) throws GradleException, DockerException {
         getLog().info("Building image " + imageName);
         BuildImageCmd cmd = buildParams(docker.buildImageCmd(new File(Paths.get(buildDir, "Dockerfile").toUri())));
+        if (ext.getPlatform().isPresent()) {
+            cmd.withPlatform(ext.getPlatform().get());
+        }
         BuildImageResultCallback callback = cmd.exec(new BuildImageResultCallback() {
             @Override
-            public void onNext(BuildResponseItem item) {
-                super.onNext(item);
-                getLog().info(item.getStream());
-                System.out.println(item.getStream());
+            public void onNext(BuildResponseItem object) {
+                super.onNext(object);
+                StringBuilder msg = new StringBuilder();
+                if (StringUtils.isNotEmpty(object.getId())) {
+                    msg.append(object.getId()).append(": ");
+                }
+                if (StringUtils.isNotEmpty(object.getStatus())) {
+                    msg.append(object.getStatus()).append(" ");
+                }
+                if (StringUtils.isNotEmpty(object.getProgress())) {
+                    msg.append(object.getProgress());
+                }
+                System.out.println(msg);
             }
         });
         getLog().info("Built " + imageName);
-        String imageId = callback.awaitImageId(getReadTimeout(), TimeUnit.MILLISECONDS);
+        int readTimeout = getReadTimeout();
+        String imageId;
+        if (readTimeout > 0) {
+            imageId = callback.awaitImageId(readTimeout, TimeUnit.MILLISECONDS);
+        } else {
+            imageId = callback.awaitImageId();
+        }
         getLog().info("Built ImageId " + imageId);
         return imageId;
     }

@@ -73,11 +73,16 @@ public class Utils {
                     @Override
                     public void onNext(PushResponseItem object) {
                         super.onNext(object);
-                        String msg = StringUtils.trimToEmpty(object.getId())
-                                + ": "
-                                + StringUtils.trimToEmpty(object.getStatus())
-                                + " "
-                                + StringUtils.trimToEmpty(object.getProgress());
+                        StringBuilder msg = new StringBuilder();
+                        if (StringUtils.isNotEmpty(object.getId())) {
+                            msg.append(object.getId()).append(": ");
+                        }
+                        if (StringUtils.isNotEmpty(object.getStatus())) {
+                            msg.append(object.getStatus()).append(" ");
+                        }
+                        if (StringUtils.isNotEmpty(object.getProgress())) {
+                            msg.append(object.getProgress());
+                        }
                         System.out.println(msg);
                         if (buildInfo != null && object.getAux() != null) {
                             final String imageNameWithoutTag = parseImageName(imageName)[0];
@@ -142,11 +147,16 @@ public class Utils {
                 @Override
                 public void onNext(PushResponseItem object) {
                     super.onNext(object);
-                    String msg = StringUtils.trimToEmpty(object.getId())
-                            + ": "
-                            + StringUtils.trimToEmpty(object.getStatus())
-                            + " "
-                            + StringUtils.trimToEmpty(object.getProgress());
+                    StringBuilder msg = new StringBuilder();
+                    if (StringUtils.isNotEmpty(object.getId())) {
+                        msg.append(object.getId()).append(": ");
+                    }
+                    if (StringUtils.isNotEmpty(object.getStatus())) {
+                        msg.append(object.getStatus()).append(" ");
+                    }
+                    if (StringUtils.isNotEmpty(object.getProgress())) {
+                        msg.append(object.getProgress());
+                    }
                     System.out.println(msg);
                 }
             }).awaitCompletion();

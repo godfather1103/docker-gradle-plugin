@@ -22,7 +22,7 @@ open class DockerPluginExtension(val project: Project) {
 
     val retryPushTimeout: Property<Int> = project.objects.property(Int::class.java).value(10000)
 
-    val readTimeout: Property<Int> = project.objects.property(Int::class.java).value(30000)
+    val readTimeout: Property<Int> = project.objects.property(Int::class.java).value(0)
 
     val skipDocker: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
 
