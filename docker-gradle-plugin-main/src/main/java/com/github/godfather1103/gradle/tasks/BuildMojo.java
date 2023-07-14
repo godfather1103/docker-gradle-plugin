@@ -367,8 +367,7 @@ public class BuildMojo extends AbstractDockerMojo {
                         resources.add(resource);
                         copyResources(destination);
                     }
-                    String imageId = buildImage(dockerClient, destination);
-                    tagImage(dockerClient, imageId, forceTags);
+                    buildAndTagImage(dockerClient, destination);
                     final DockerBuildInformation buildInfo = new DockerBuildInformation(imageName, getLog());
                     // Push specific tags specified in pom rather than all images
                     if (pushImageTag) {
@@ -417,11 +416,16 @@ public class BuildMojo extends AbstractDockerMojo {
         }
     }
 
-    private String buildImage(final DockerClient docker, final String buildDir) throws GradleException, DockerException {
+    private void buildAndTagImage(DockerClient dockerClient, String destination) {
+        String imageId = buildImage(dockerClient, Optional.ofNullable(ext.getPlatform().getOrNull()), destination);
+        tagImage(dockerClient, imageId, forceTags);
+    }
+
+    private String buildImage(final DockerClient docker, final Optional<String> platform, final String buildDir) throws GradleException, DockerException {
         getLog().info("Building image " + imageName);
         BuildImageCmd cmd = buildParams(docker.buildImageCmd(new File(Paths.get(buildDir, "Dockerfile").toUri())));
-        if (ext.getPlatform().isPresent()) {
-            cmd.withPlatform(ext.getPlatform().get());
+        if (platform.isPresent()) {
+            cmd.withPlatform(platform.get());
         }
         BuildImageResultCallback callback = cmd.exec(new BuildImageResultCallback() {
             @Override
