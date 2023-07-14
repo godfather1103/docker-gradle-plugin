@@ -55,6 +55,7 @@ docker {
         auth.value(new AuthConfig(user, password, email))
     }
     dockerBuildArgs.put("GitTag", "1.0")
+    platform.value("linux/amd64")
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
     pushImageTag.value(false)

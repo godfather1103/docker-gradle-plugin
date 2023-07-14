@@ -68,6 +68,7 @@ docker {
         auth.value(AuthConfig(user, password, email))
     }
     dockerBuildArgs.put("GitTag", "1.0")
+    platform.value("linux/arm64/v8")
     imageName.value("$name-kotlin")
     dockerImageTags.add("1.0")
     pushImageTag.value(false)

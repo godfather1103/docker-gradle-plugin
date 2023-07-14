@@ -1,5 +1,5 @@
 # 基础镜像-JDK环境
-FROM mcr.microsoft.com/java/jre:11-zulu-alpine
+FROM azul/zulu-openjdk-alpine:11
 # 相关标签信息
 LABEL Author=JackChu
 LABEL Desc=测试代码
