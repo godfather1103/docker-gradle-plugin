@@ -441,7 +441,9 @@ public class BuildMojo extends AbstractDockerMojo {
                 if (StringUtils.isNotEmpty(object.getProgress())) {
                     msg.append(object.getProgress());
                 }
-                System.out.println(msg);
+                if (msg.length() > 0) {
+                    System.out.println(msg);
+                }
             }
         });
         getLog().info("Built " + imageName);

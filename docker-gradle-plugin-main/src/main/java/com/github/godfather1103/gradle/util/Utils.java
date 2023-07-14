@@ -83,7 +83,9 @@ public class Utils {
                         if (StringUtils.isNotEmpty(object.getProgress())) {
                             msg.append(object.getProgress());
                         }
-                        System.out.println(msg);
+                        if (msg.length() > 0) {
+                            System.out.println(msg);
+                        }
                         if (buildInfo != null && object.getAux() != null) {
                             final String imageNameWithoutTag = parseImageName(imageName)[0];
                             buildInfo.setDigest(imageNameWithoutTag + "@" + object.getAux().getDigest());
@@ -157,7 +159,9 @@ public class Utils {
                     if (StringUtils.isNotEmpty(object.getProgress())) {
                         msg.append(object.getProgress());
                     }
-                    System.out.println(msg);
+                    if (msg.length() > 0) {
+                        System.out.println(msg);
+                    }
                 }
             }).awaitCompletion();
         }
