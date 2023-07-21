@@ -1,20 +1,26 @@
 # docker-gradle-plugin
-> build, push the gradle plug-in of docker image.  
 
-## Pre Description 
-1. There are bugs in versions lower than or including 1.2, but they cannot be deleted after uploading, so it is recommended to use the version >= 1.2.1
+> build, push the gradle plug-in of docker image.
+
+## Pre Description
+
+1. There are bugs in versions lower than or including 1.2, but they cannot be deleted after uploading, so it is
+   recommended to use the version >= 1.2.1
 
 ## Code Repository
+
 GitHub: [https://github.com/godfather1103/docker-gradle-plugin](https://github.com/godfather1103/docker-gradle-plugin)  
 Gitee: [https://gitee.com/godfather1103/docker-gradle-plugin](https://gitee.com/godfather1103/docker-gradle-plugin)
 
 ## Usage
+
 1. Introducing relevant plug-ins into gradle
+
 ```groovy
 // groovy DSL
 // Using the plugins DSL:
 plugins {
-  id "io.github.godfather1103.docker-plugin" version "1.2.3"
+    id "io.github.godfather1103.docker-plugin" version "1.2.3"
 }
 
 // Using legacy plugin application:
@@ -51,6 +57,7 @@ apply(plugin = "io.github.godfather1103.docker-plugin")
 ```
 
 2. Configure relevant build parameters
+
 ```groovy
 // groovy DSL
 docker {
@@ -63,8 +70,10 @@ docker {
     if (!user.isEmpty() && !password.isEmpty()) {
         auth.value(new AuthConfig(user, password, email))
     }
+    dockerBuildArgs.put("GitTag", "1.0")
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
+    platform.value("linux/amd64")
     pushImageTag.value(true)
     pushImage.value(true)
 }
@@ -79,23 +88,27 @@ docker {
     if (user.isNotEmpty() && password.isNotEmpty()) {
         auth.value(AuthConfig(user, password, email))
     }
+    dockerBuildArgs.put("GitTag", "1.0")
     imageName.value("$name-kotlin")
     dockerImageTags.add("1.0")
+    platform.value("linux/arm64/v8")
     pushImageTag.value(true)
     pushImage.value(true)
 }
 ```
 
 ## Tasks
+
 > Plugin introduces the following tasks.
 
 | Task                   | Description          |
 |:-----------------------|:---------------------|
 | <kbd>dockerBuild</kbd> | build  docker image. |
 
-
 ## Setup DSL
-> The following attributes are a part of the Setup DSL <kbd>docker { ... }</kbd> in which allows you to set up the environment and dependencies.  
+
+> The following attributes are a part of the Setup DSL <kbd>docker { ... }</kbd> in which allows you to set up the
+> environment and dependencies.
 
 | Attributes                                                          | Values                                                                                                                                            |
 |:--------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -108,6 +121,7 @@ docker {
 | <kbd>auth</kbd> - Authentication information                        | **Acceptable Values:** <br/><kbd>AuthConfig Object</kbd> - `new AuthConfig(username,password,email)` <br/><br/>**Default Value:** <kbd>null</kbd> |
 | <kbd>dockerBuildArgs</kbd> - docker build args                      | **Acceptable Values:** <br/><kbd>Map</kbd> - `map["arg1"]="arg"` <br/><br/>**Default Value:** <kbd>null</kbd>                                     |
 | <kbd>resources</kbd> - Resources copied during the build process    | **Acceptable Values:** <br/><kbd>List[Resource]</kbd> - `[resources1,resources2,...]` <br/><br/>**Default Value:** <kbd>[]</kbd>                  |
+| <kbd>platform</kbd> - Platform in the format os[/arch[/variant]]    | **Acceptable Values:** <br/><kbd>String</kbd> - `linux/arm64/v8` <br/><br/>**Default Value:** <kbd>''</kbd>                                       |
 
 ### AuthConfig Properties
 
@@ -126,9 +140,10 @@ docker {
 | <kbd>includes</kbd> - Introduced resources(Ant-style) | **Acceptable Values:** <br/><kbd>List[String]</kbd> - `['*.jar','*.class']` <br/><br/>**Default Value:** <kbd>[]</kbd> |
 | <kbd>excludes</kbd> - Excluded resources(Ant-style)   | **Acceptable Values:** <br/><kbd>List[String]</kbd> - `['*.log','log/**']` <br/><br/>**Default Value:** <kbd>[]</kbd>  |
 
-
 ### Configure default docker account information
-> Copy the following to your gradle.properties file.When the corresponding authentication information is not configured in the project, the default account information will be used.
+
+> Copy the following to your gradle.properties file.When the corresponding authentication information is not configured
+> in the project, the default account information will be used.
 
 | Attributes                                              | Values                                                                  |
 |:--------------------------------------------------------|:------------------------------------------------------------------------|
@@ -137,6 +152,7 @@ docker {
 | <kbd>docker.email</kbd> - Email of docker account       | **Acceptable Values:** <br/><kbd>String</kbd> - `'example@example.com'` |
 
 ## Donate
+
 Your gift will help me to contribute better, thank you!
 
 [PayPal](https://paypal.me/godfather1103?locale.x=zh_XC)
@@ -149,5 +165,7 @@ WeChatPay
 ![WeChatPay](pic/WeChat-300.png)
 
 ## Epilogue
-idea from [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
+
+1. idea from [docker-maven-plugin](https://github.com/spotify/docker-maven-plugin)
+2. since version 2.0,api sdk change to [docker-java](https://github.com/docker-java/docker-java)
 
