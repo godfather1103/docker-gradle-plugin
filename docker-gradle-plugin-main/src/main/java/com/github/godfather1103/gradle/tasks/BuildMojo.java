@@ -208,6 +208,8 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private String network;
 
+    private Boolean needTagLatest;
+
     private List<Resource> resources = new ArrayList<>(0);
 
     private final Map<String, String> replaceMap = new HashMap<>(0);
@@ -255,6 +257,7 @@ public class BuildMojo extends AbstractDockerMojo {
                 replaceMap.put(k, v.toString());
             }
         });
+        needTagLatest = ext.getNeedTagLatest().getOrElse(true);
     }
 
     private Boolean isSkipDockerBuild() {
@@ -471,8 +474,10 @@ public class BuildMojo extends AbstractDockerMojo {
 
     private void tagImage(final DockerClient docker, String imageId, boolean forceTags) throws DockerException, GradleException {
         final String imageNameWithoutTag = parseImageName(imageName)[0];
-        // 构建latest
-        docker.tagImageCmd(imageId, imageNameWithoutTag, "").withForce(forceTags).exec();
+        if (needTagLatest || imageTags.isEmpty()) {
+            // 构建latest
+            docker.tagImageCmd(imageId, imageNameWithoutTag, "").withForce(forceTags).exec();
+        }
         // 构建其他tag
         for (final String imageTag : imageTags) {
             if (!isNullOrEmpty(imageTag)) {
