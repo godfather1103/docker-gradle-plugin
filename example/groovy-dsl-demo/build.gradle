@@ -1,6 +1,14 @@
 import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.godfather1103.gradle.entity.Resource
 
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     id 'org.springframework.boot' version '2.5.10'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
@@ -20,9 +28,6 @@ configurations {
 
 repositories {
     mavenLocal()
-    maven {
-        url 'https://maven.aliyun.com/nexus/content/groups/public'
-    }
     mavenCentral()
 }
 
@@ -50,6 +55,7 @@ docker {
         auth.value(new AuthConfig(user, password, email))
     }
     dockerBuildArgs.put("GitTag", "1.0")
+    platform.value("linux/amd64")
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
     pushImageTag.value(false)

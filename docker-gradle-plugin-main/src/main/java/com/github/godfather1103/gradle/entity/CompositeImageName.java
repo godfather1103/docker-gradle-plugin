@@ -1,6 +1,6 @@
 package com.github.godfather1103.gradle.entity;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 
 import java.util.ArrayList;

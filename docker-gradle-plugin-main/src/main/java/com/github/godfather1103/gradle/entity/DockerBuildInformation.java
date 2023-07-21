@@ -3,7 +3,6 @@ package com.github.godfather1103.gradle.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Throwables;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.gradle.api.GradleException;
@@ -64,7 +63,6 @@ public class DockerBuildInformation {
         try {
             return OBJECT_MAPPER.writeValueAsBytes(this);
         } catch (JsonProcessingException e) {
-            Throwables.throwIfUnchecked(e);
             throw new GradleException("json err", e);
         }
     }

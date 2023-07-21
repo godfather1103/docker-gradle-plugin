@@ -22,6 +22,8 @@ open class DockerPluginExtension(val project: Project) {
 
     val retryPushTimeout: Property<Int> = project.objects.property(Int::class.java).value(10000)
 
+    val readTimeout: Property<Int> = project.objects.property(Int::class.java).value(0)
+
     val skipDocker: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
 
     val skipDockerPush: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
@@ -116,5 +118,15 @@ open class DockerPluginExtension(val project: Project) {
     val dockerDirectoryIncludes: SetProperty<String> = project.objects.setProperty(String::class.java)
 
     val dockerDirectoryExcludes: SetProperty<String> = project.objects.setProperty(String::class.java)
+
+    /**
+     * 支持构建的平台
+     * */
+    val platform: Property<String> = project.objects.property(String::class.java)
+
+    /**
+     * 是否tag latest
+     * */
+    val needTagLatest: Property<Boolean> = project.objects.property(Boolean::class.java).value(true)
 
 }

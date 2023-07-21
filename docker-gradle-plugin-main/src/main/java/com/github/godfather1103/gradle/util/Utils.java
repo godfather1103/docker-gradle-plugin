@@ -1,12 +1,12 @@
 package com.github.godfather1103.gradle.util;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.exception.DockerException;
+import com.github.dockerjava.api.model.PushResponseItem;
 import com.github.godfather1103.gradle.entity.CompositeImageName;
 import com.github.godfather1103.gradle.entity.DockerBuildInformation;
-import com.spotify.docker.client.AnsiProgressHandler;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.ProgressHandler;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ProgressMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 
@@ -51,41 +51,59 @@ public class Utils {
         return new String[]{repo, tag};
     }
 
-    public static void pushImage(final DockerClient docker, final String imageName,
-                                 final List<String> imageTags, final Logger log,
+    public static void pushImage(final DockerClient docker,
+                                 final String imageName,
+                                 final List<String> imageTags,
+                                 final Logger log,
                                  final DockerBuildInformation buildInfo,
-                                 final int retryPushCount, final int retryPushTimeout,
+                                 final int retryPushCount,
+                                 final int retryPushTimeout,
                                  final boolean skipPush)
-            throws GradleException, DockerException, InterruptedException {
+            throws GradleException, InterruptedException {
 
         if (skipPush) {
             log.info("Skipping docker push");
             return;
         }
-
         int attempt = 0;
         do {
-            final AnsiProgressHandler ansiProgressHandler = new AnsiProgressHandler();
-            final DigestExtractingProgressHandler handler = new DigestExtractingProgressHandler(
-                    ansiProgressHandler);
-
             try {
                 log.info("Pushing " + imageName);
-                docker.push(imageName, handler);
-
+                docker.pushImageCmd(imageName).exec(new ResultCallback.Adapter<PushResponseItem>() {
+                    @Override
+                    public void onNext(PushResponseItem object) {
+                        super.onNext(object);
+                        StringBuilder msg = new StringBuilder();
+                        if (StringUtils.isNotEmpty(object.getId())) {
+                            msg.append(object.getId()).append(": ");
+                        }
+                        if (StringUtils.isNotEmpty(object.getStatus())) {
+                            msg.append(object.getStatus()).append(" ");
+                        }
+                        if (StringUtils.isNotEmpty(object.getProgress())) {
+                            msg.append(object.getProgress());
+                        }
+                        if (msg.length() > 0) {
+                            System.out.println(msg);
+                        }
+                        if (buildInfo != null && object.getAux() != null) {
+                            final String imageNameWithoutTag = parseImageName(imageName)[0];
+                            buildInfo.setDigest(imageNameWithoutTag + "@" + object.getAux().getDigest());
+                        }
+                    }
+                }).awaitCompletion();
                 if (imageTags != null) {
                     final String imageNameNoTag = getImageNameWithNoTag(imageName);
                     for (final String imageTag : imageTags) {
                         final String imageNameAndTag = imageNameNoTag + ":" + imageTag;
                         log.info("Pushing " + imageNameAndTag);
-                        docker.push(imageNameAndTag, new AnsiProgressHandler());
+                        docker.pushImageCmd(imageNameAndTag).start().awaitCompletion();
                     }
                 }
-
                 // A concurrent push raises a generic DockerException and not
                 // the more logical ImagePushFailedException. Hence the rather
                 // wide catch clause.
-            } catch (DockerException e) {
+            } catch (Exception e) {
                 if (attempt < retryPushCount) {
                     log.warn(String.format(PUSH_FAIL_WARN_TEMPLATE, imageName, retryPushTimeout / 1000,
                             attempt + 1, retryPushCount));
@@ -94,10 +112,6 @@ public class Utils {
                 } else {
                     throw e;
                 }
-            }
-            if (buildInfo != null) {
-                final String imageNameWithoutTag = parseImageName(imageName)[0];
-                buildInfo.setDigest(imageNameWithoutTag + "@" + handler.digest());
             }
             break;
         } while (attempt++ <= retryPushCount);
@@ -111,10 +125,11 @@ public class Utils {
         return imageName;
     }
 
-    // push just the tags listed in the pom rather than all images using imageName
-    public static void pushImageTag(DockerClient docker, String imageName,
-                                    List<String> imageTags, Logger log, boolean skipPush)
-            throws GradleException, DockerException, IOException, InterruptedException {
+    public static void pushImageTag(DockerClient docker,
+                                    String imageName,
+                                    List<String> imageTags,
+                                    Logger log,
+                                    boolean skipPush) throws GradleException, InterruptedException {
 
         if (skipPush) {
             log.info("Skipping docker push");
@@ -130,17 +145,37 @@ public class Utils {
         for (final String imageTag : compositeImageName.getImageTags()) {
             final String imageNameWithTag = compositeImageName.getName() + ":" + imageTag;
             log.info("Pushing " + imageNameWithTag);
-            docker.push(imageNameWithTag, new AnsiProgressHandler());
+            docker.pushImageCmd(imageNameWithTag).exec(new ResultCallback.Adapter<PushResponseItem>() {
+                @Override
+                public void onNext(PushResponseItem object) {
+                    super.onNext(object);
+                    StringBuilder msg = new StringBuilder();
+                    if (StringUtils.isNotEmpty(object.getId())) {
+                        msg.append(object.getId()).append(": ");
+                    }
+                    if (StringUtils.isNotEmpty(object.getStatus())) {
+                        msg.append(object.getStatus()).append(" ");
+                    }
+                    if (StringUtils.isNotEmpty(object.getProgress())) {
+                        msg.append(object.getProgress());
+                    }
+                    if (msg.length() > 0) {
+                        System.out.println(msg);
+                    }
+                }
+            }).awaitCompletion();
         }
     }
 
-    public static void saveImage(DockerClient docker, String imageName,
-                                 Path tarArchivePath, Logger log)
+    public static void saveImage(DockerClient docker,
+                                 String imageName,
+                                 Path tarArchivePath,
+                                 Logger log)
             throws DockerException, IOException, InterruptedException {
         log.info(String.format("Save docker image %s to %s.",
                 imageName, tarArchivePath.toAbsolutePath()));
-        final InputStream is = docker.save(imageName);
-        java.nio.file.Files.copy(is, tarArchivePath, StandardCopyOption.REPLACE_EXISTING);
+        final InputStream is = docker.saveImageCmd(imageName).exec();
+        Files.copy(is, tarArchivePath, StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static void writeImageInfoFile(final DockerBuildInformation buildInfo,
@@ -150,28 +185,5 @@ public class Utils {
             Files.createDirectories(imageInfoPath.getParent());
         }
         Files.write(imageInfoPath, buildInfo.toJsonBytes());
-    }
-
-    private static class DigestExtractingProgressHandler implements ProgressHandler {
-
-        private final ProgressHandler delegate;
-        private String digest;
-
-        DigestExtractingProgressHandler(final ProgressHandler delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void progress(final ProgressMessage message) throws DockerException {
-            if (message.digest() != null) {
-                digest = message.digest();
-            }
-
-            delegate.progress(message);
-        }
-
-        public String digest() {
-            return digest;
-        }
     }
 }

@@ -1,7 +1,10 @@
 package com.github.godfather1103.gradle.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.BuildImageCmd;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.exception.DockerException;
+import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.godfather1103.gradle.entity.DockerBuildInformation;
 import com.github.godfather1103.gradle.entity.Git;
 import com.github.godfather1103.gradle.entity.Resource;
@@ -14,25 +17,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.spotify.docker.client.AnsiProgressHandler;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import io.vavr.control.Try;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
 import org.gradle.internal.impldep.org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -56,11 +54,6 @@ public class BuildMojo extends AbstractDockerMojo {
      * The Windows separator character.
      */
     private static final char WINDOWS_SEPARATOR = '\\';
-
-    /**
-     * Json Object Mapper to encode arguments map
-     */
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * Directory containing the Dockerfile. If the value is not set, the plugin will generate a
@@ -172,8 +165,6 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     protected String buildDirectory;
 
-    private String profile;
-
     /**
      * Path to JSON file to write when tagging images.
      * Default is ${project.build.testOutputDirectory}/image_info.json
@@ -188,9 +179,6 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private boolean useGitCommitId;
 
-//    @Parameter(property = "dockerResources")
-//    private List<Resource> resources;
-
     /**
      * Built image will be given this name.
      */
@@ -200,8 +188,6 @@ public class BuildMojo extends AbstractDockerMojo {
      * Additional tags to tag the image with.
      */
     private List<String> imageTags;
-
-    private String defaultProfile;
 
     private Map<String, String> env;
 
@@ -222,6 +208,8 @@ public class BuildMojo extends AbstractDockerMojo {
      */
     private String network;
 
+    private Boolean needTagLatest;
+
     private List<Resource> resources = new ArrayList<>(0);
 
     private final Map<String, String> replaceMap = new HashMap<>(0);
@@ -232,7 +220,6 @@ public class BuildMojo extends AbstractDockerMojo {
 
     @Override
     public void initExt(DockerPluginExtension ext) {
-        super.initExt(ext);
         dockerDirectory = ext.getDockerDirectory().getOrNull();
         dockerDirectoryIncludes = ext.getDockerDirectoryIncludes().getOrNull();
         dockerDirectoryExcludes = ext.getDockerDirectoryExcludes().getOrNull();
@@ -255,12 +242,10 @@ public class BuildMojo extends AbstractDockerMojo {
         runs = ext.getDockerRuns().getOrNull();
         squashRunCommands = ext.getSquashRunCommands().getOrElse(false);
         buildDirectory = ext.getBuildDirectory();
-        profile = ext.getDockerBuildProfile().getOrNull();
         tagInfoFile = ext.getTagInfoFile().getOrNull();
         useGitCommitId = ext.getUseGitCommitId().getOrElse(false);
         imageName = ext.getImageName().getOrNull();
         imageTags = ext.getDockerImageTags().getOrElse(new ArrayList<>(0));
-        defaultProfile = ext.getDockerDefaultBuildProfile().getOrNull();
         env = ext.getDockerEnv().getOrElse(new HashMap<>(0));
         exposes = ext.getDockerExposes().getOrElse(new ArrayList<>(0));
         buildArgs = ext.getDockerBuildArgs().getOrNull();
@@ -272,6 +257,7 @@ public class BuildMojo extends AbstractDockerMojo {
                 replaceMap.put(k, v.toString());
             }
         });
+        needTagLatest = ext.getNeedTagLatest().getOrElse(true);
     }
 
     private Boolean isSkipDockerBuild() {
@@ -384,26 +370,19 @@ public class BuildMojo extends AbstractDockerMojo {
                         resources.add(resource);
                         copyResources(destination);
                     }
-
-                    buildImage(dockerClient, destination, buildParams());
-                    tagImage(dockerClient, forceTags);
-
+                    buildAndTagImage(dockerClient, destination);
                     final DockerBuildInformation buildInfo = new DockerBuildInformation(imageName, getLog());
-
                     // Push specific tags specified in pom rather than all images
                     if (pushImageTag) {
                         Utils.pushImageTag(dockerClient, imageName, imageTags, getLog(), isSkipDockerPush());
                     }
-
                     if (pushImage) {
                         Utils.pushImage(dockerClient, imageName, imageTags, getLog(), buildInfo, getRetryPushCount(),
                                 getRetryPushTimeout(), isSkipDockerPush());
                     }
-
                     if (saveImageToTarArchive != null) {
                         Utils.saveImage(dockerClient, imageName, Paths.get(saveImageToTarArchive), getLog());
                     }
-
                     // Write image info file
                     writeImageInfoFile(buildInfo, tagInfoFile);
                 }).onFailure(e -> getLog().error("dockerBuild Error", e))
@@ -440,21 +419,72 @@ public class BuildMojo extends AbstractDockerMojo {
         }
     }
 
-    private void buildImage(final DockerClient docker, final String buildDir,
-                            final DockerClient.BuildParam... buildParams)
-            throws GradleException, DockerException, IOException, InterruptedException {
-        getLog().info("Building image " + imageName);
-        docker.build(Paths.get(buildDir), imageName, new AnsiProgressHandler(), buildParams);
-        getLog().info("Built " + imageName);
+    private void buildAndTagImage(DockerClient dockerClient, String destination) {
+        String imageId = buildImage(dockerClient, Optional.ofNullable(ext.getPlatform().getOrNull()), destination);
+        tagImage(dockerClient, imageId, forceTags);
     }
 
-    private void tagImage(final DockerClient docker, boolean forceTags)
-            throws DockerException, InterruptedException, GradleException {
+    private String buildImage(final DockerClient docker, final Optional<String> platform, final String buildDir) throws GradleException, DockerException {
+        getLog().info("Building image " + imageName);
+        BuildImageCmd cmd = buildParams(docker.buildImageCmd(new File(Paths.get(buildDir, "Dockerfile").toUri())));
+        if (platform.isPresent()) {
+            cmd.withPlatform(platform.get());
+        }
+        BuildImageResultCallback callback = cmd.exec(new BuildImageResultCallback() {
+            @Override
+            public void onNext(BuildResponseItem object) {
+                super.onNext(object);
+                StringBuilder msg = new StringBuilder();
+                if (StringUtils.isNotEmpty(object.getId())) {
+                    msg.append(object.getId()).append(": ");
+                }
+                if (StringUtils.isNotEmpty(object.getStatus())) {
+                    msg.append(object.getStatus()).append(" ");
+                }
+                if (StringUtils.isNotEmpty(object.getProgress())) {
+                    msg.append(object.getProgress());
+                }
+                if (msg.length() > 0) {
+                    System.out.println(msg);
+                }
+            }
+        });
+        getLog().info("Built " + imageName);
+        int readTimeout = getReadTimeout();
+        String imageId;
+        if (readTimeout > 0) {
+            imageId = callback.awaitImageId(readTimeout, TimeUnit.MILLISECONDS);
+        } else {
+            imageId = callback.awaitImageId();
+        }
+        getLog().info("Built ImageId " + imageId);
+        return imageId;
+    }
+
+    private BuildImageCmd buildParams(BuildImageCmd cmd) {
+        cmd.withPull(pullOnBuild);
+        cmd.withNoCache(noCache);
+        cmd.withRemove(rm);
+        buildArgs.forEach(cmd::withBuildArg);
+        if (!isNullOrEmpty(network)) {
+            cmd.withNetworkMode(network);
+        }
+        return cmd;
+    }
+
+    private void tagImage(final DockerClient docker, String imageId, boolean forceTags) throws DockerException, GradleException {
         final String imageNameWithoutTag = parseImageName(imageName)[0];
+        if (needTagLatest || imageTags.isEmpty()) {
+            // 构建latest
+            docker.tagImageCmd(imageId, imageNameWithoutTag, "").withForce(forceTags).exec();
+        }
+        // 构建其他tag
         for (final String imageTag : imageTags) {
             if (!isNullOrEmpty(imageTag)) {
                 getLog().info("Tagging " + imageName + " with " + imageTag);
-                docker.tag(imageName, imageNameWithoutTag + ":" + imageTag, forceTags);
+                docker.tagImageCmd(imageId, imageNameWithoutTag, imageTag)
+                        .withForce(forceTags)
+                        .exec();
             }
         }
     }
@@ -522,7 +552,6 @@ public class BuildMojo extends AbstractDockerMojo {
             commands.add("ENTRYPOINT " + entryPoint);
         }
         if (cmd != null) {
-            // TODO(dano): we actually need to check whether the base image has an entrypoint
             if (entryPoint != null) {
                 // CMD needs to be a list of arguments if ENTRYPOINT is set.
                 if (cmd.startsWith("[") && cmd.endsWith("]")) {
@@ -676,18 +705,6 @@ public class BuildMojo extends AbstractDockerMojo {
         return Paths.get(buildDirectory, "docker").toString();
     }
 
-    private String get(final String override, final Config config, final String path)
-            throws GradleException {
-        if (override != null) {
-            return override;
-        }
-        try {
-            return expand(config.getString(path));
-        } catch (ConfigException.Missing e) {
-            return null;
-        }
-    }
-
     public String expand(String value) {
         if (Strings.isNullOrEmpty(value)) {
             return value;
@@ -706,27 +723,5 @@ public class BuildMojo extends AbstractDockerMojo {
         } finally {
             LOCK.unlock();
         }
-    }
-
-    private DockerClient.BuildParam[] buildParams()
-            throws UnsupportedEncodingException, JsonProcessingException {
-        final List<DockerClient.BuildParam> buildParams = Lists.newArrayList();
-        if (pullOnBuild) {
-            buildParams.add(DockerClient.BuildParam.pullNewerImage());
-        }
-        if (noCache) {
-            buildParams.add(DockerClient.BuildParam.noCache());
-        }
-        if (!rm) {
-            buildParams.add(DockerClient.BuildParam.rm(false));
-        }
-        if (!buildArgs.isEmpty()) {
-            buildParams.add(DockerClient.BuildParam.create("buildargs",
-                    URLEncoder.encode(OBJECT_MAPPER.writeValueAsString(buildArgs), "UTF-8")));
-        }
-        if (!isNullOrEmpty(network)) {
-            buildParams.add(DockerClient.BuildParam.create("networkmode", network));
-        }
-        return buildParams.toArray(new DockerClient.BuildParam[buildParams.size()]);
     }
 }
