@@ -18,7 +18,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
 import org.gradle.internal.impldep.org.codehaus.plexus.util.FileUtils;
@@ -209,6 +208,7 @@ public class BuildMojo extends AbstractDockerMojo {
     private String network;
 
     private Boolean needTagLatest;
+    private Boolean quiet;
 
     private List<Resource> resources = new ArrayList<>(0);
 
@@ -258,6 +258,7 @@ public class BuildMojo extends AbstractDockerMojo {
             }
         });
         needTagLatest = ext.getNeedTagLatest().getOrElse(true);
+        quiet = ext.getQuiet().getOrElse(false);
     }
 
     private Boolean isSkipDockerBuild() {
@@ -427,26 +428,13 @@ public class BuildMojo extends AbstractDockerMojo {
     private String buildImage(final DockerClient docker, final Optional<String> platform, final String buildDir) throws GradleException, DockerException {
         getLog().info("Building image " + imageName);
         BuildImageCmd cmd = buildParams(docker.buildImageCmd(new File(Paths.get(buildDir, "Dockerfile").toUri())));
-        if (platform.isPresent()) {
-            cmd.withPlatform(platform.get());
-        }
+        platform.ifPresent(cmd::withPlatform);
         BuildImageResultCallback callback = cmd.exec(new BuildImageResultCallback() {
             @Override
             public void onNext(BuildResponseItem object) {
                 super.onNext(object);
-                StringBuilder msg = new StringBuilder();
-                if (StringUtils.isNotEmpty(object.getId())) {
-                    msg.append(object.getId()).append(": ");
-                }
-                if (StringUtils.isNotEmpty(object.getStatus())) {
-                    msg.append(object.getStatus()).append(" ");
-                }
-                if (StringUtils.isNotEmpty(object.getProgress())) {
-                    msg.append(object.getProgress());
-                }
-                if (msg.length() > 0) {
-                    System.out.println(msg);
-                }
+                String msg = Utils.makeOutMsg(object);
+                System.out.println(msg);
             }
         });
         getLog().info("Built " + imageName);
@@ -465,19 +453,20 @@ public class BuildMojo extends AbstractDockerMojo {
         cmd.withPull(pullOnBuild);
         cmd.withNoCache(noCache);
         cmd.withRemove(rm);
+        cmd.withQuiet(quiet);
         buildArgs.forEach(cmd::withBuildArg);
         if (!isNullOrEmpty(network)) {
             cmd.withNetworkMode(network);
+        }
+        if (needTagLatest || imageTags.isEmpty()) {
+            // 构建latest
+            cmd.withTags(Collections.singleton(imageName));
         }
         return cmd;
     }
 
     private void tagImage(final DockerClient docker, String imageId, boolean forceTags) throws DockerException, GradleException {
         final String imageNameWithoutTag = parseImageName(imageName)[0];
-        if (needTagLatest || imageTags.isEmpty()) {
-            // 构建latest
-            docker.tagImageCmd(imageId, imageNameWithoutTag, "").withForce(forceTags).exec();
-        }
         // 构建其他tag
         for (final String imageTag : imageTags) {
             if (!isNullOrEmpty(imageTag)) {

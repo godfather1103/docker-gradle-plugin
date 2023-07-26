@@ -4,6 +4,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.PushResponseItem;
+import com.github.dockerjava.api.model.ResponseItem;
 import com.github.godfather1103.gradle.entity.CompositeImageName;
 import com.github.godfather1103.gradle.entity.DockerBuildInformation;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,25 @@ public class Utils {
 
     public static final String PUSH_FAIL_WARN_TEMPLATE = "Failed to push %s,"
             + " retrying in %d seconds (%d/%d).";
+
+    public static String makeOutMsg(ResponseItem object) {
+        StringBuilder msg = new StringBuilder();
+        if (object != null) {
+            if (StringUtils.isNotEmpty(object.getStream())) {
+                msg.append(object.getStream());
+            }
+            if (StringUtils.isNotEmpty(object.getId())) {
+                msg.append(object.getId()).append(": ");
+            }
+            if (StringUtils.isNotEmpty(object.getStatus())) {
+                msg.append(object.getStatus()).append(" ");
+            }
+            if (StringUtils.isNotEmpty(object.getProgress())) {
+                msg.append(object.getProgress());
+            }
+        }
+        return msg.toString();
+    }
 
     public static String[] parseImageName(String imageName) throws GradleException {
         if (isNullOrEmpty(imageName)) {
@@ -73,19 +93,8 @@ public class Utils {
                     @Override
                     public void onNext(PushResponseItem object) {
                         super.onNext(object);
-                        StringBuilder msg = new StringBuilder();
-                        if (StringUtils.isNotEmpty(object.getId())) {
-                            msg.append(object.getId()).append(": ");
-                        }
-                        if (StringUtils.isNotEmpty(object.getStatus())) {
-                            msg.append(object.getStatus()).append(" ");
-                        }
-                        if (StringUtils.isNotEmpty(object.getProgress())) {
-                            msg.append(object.getProgress());
-                        }
-                        if (msg.length() > 0) {
-                            System.out.println(msg);
-                        }
+                        String msg = makeOutMsg(object);
+                        System.out.println(msg);
                         if (buildInfo != null && object.getAux() != null) {
                             final String imageNameWithoutTag = parseImageName(imageName)[0];
                             buildInfo.setDigest(imageNameWithoutTag + "@" + object.getAux().getDigest());
@@ -149,19 +158,8 @@ public class Utils {
                 @Override
                 public void onNext(PushResponseItem object) {
                     super.onNext(object);
-                    StringBuilder msg = new StringBuilder();
-                    if (StringUtils.isNotEmpty(object.getId())) {
-                        msg.append(object.getId()).append(": ");
-                    }
-                    if (StringUtils.isNotEmpty(object.getStatus())) {
-                        msg.append(object.getStatus()).append(" ");
-                    }
-                    if (StringUtils.isNotEmpty(object.getProgress())) {
-                        msg.append(object.getProgress());
-                    }
-                    if (msg.length() > 0) {
-                        System.out.println(msg);
-                    }
+                    String msg = makeOutMsg(object);
+                    System.out.println(msg);
                 }
             }).awaitCompletion();
         }
@@ -171,7 +169,7 @@ public class Utils {
                                  String imageName,
                                  Path tarArchivePath,
                                  Logger log)
-            throws DockerException, IOException, InterruptedException {
+            throws DockerException, IOException {
         log.info(String.format("Save docker image %s to %s.",
                 imageName, tarArchivePath.toAbsolutePath()));
         final InputStream is = docker.saveImageCmd(imageName).exec();
