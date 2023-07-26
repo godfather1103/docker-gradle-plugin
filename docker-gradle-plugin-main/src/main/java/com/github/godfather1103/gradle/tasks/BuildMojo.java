@@ -434,7 +434,7 @@ public class BuildMojo extends AbstractDockerMojo {
             public void onNext(BuildResponseItem object) {
                 super.onNext(object);
                 String msg = Utils.makeOutMsg(object);
-                System.out.print(msg);
+                System.out.println(msg);
             }
         });
         getLog().info("Built " + imageName);
