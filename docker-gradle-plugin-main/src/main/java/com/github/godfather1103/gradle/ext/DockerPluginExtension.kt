@@ -129,4 +129,6 @@ open class DockerPluginExtension(val project: Project) {
      * */
     val needTagLatest: Property<Boolean> = project.objects.property(Boolean::class.java).value(true)
 
+    val quiet: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
+
 }
