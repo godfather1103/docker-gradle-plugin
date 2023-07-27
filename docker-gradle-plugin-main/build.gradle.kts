@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 buildscript {
     repositories {
         mavenLocal()
@@ -43,6 +45,13 @@ java {
 
 tasks.withType(Javadoc::class.java) {
     options.encoding = "UTF-8"
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs += "-Xjsr305=strict"
+        jvmTarget = "1.8"
+    }
 }
 
 gradlePlugin {

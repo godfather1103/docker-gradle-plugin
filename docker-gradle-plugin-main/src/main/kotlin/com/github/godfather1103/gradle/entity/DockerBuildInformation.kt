@@ -18,7 +18,7 @@ class DockerBuildInformation {
         .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
         .setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
-    @JsonProperty("repo")
+    @JsonProperty("image")
     private var image: String
 
     @JsonProperty("repo")
