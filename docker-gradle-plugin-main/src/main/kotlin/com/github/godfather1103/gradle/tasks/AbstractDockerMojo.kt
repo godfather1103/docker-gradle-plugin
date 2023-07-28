@@ -4,9 +4,11 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory
-import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
+import com.github.dockerjava.transport.DockerHttpClient
+import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.godfather1103.gradle.ext.DockerPluginExtension
 import com.sun.jna.Platform
 import org.apache.commons.lang3.StringUtils
@@ -167,15 +169,33 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
         registryAuth(configBuilder)
         val config: DockerClientConfig = configBuilder.build()
         if (Platform.isWindows() || Platform.isWindowsCE()) {
-            val httpClient = OkDockerHttpClient.Builder()
+            val useOkHttp = System.getProperty("docker.api.httpclient.type", "okhttp")
+                .equals("okhttp", true)
+            return DockerClientImpl.getInstance(
+                config,
+                makeDockerHttpClient(useOkHttp, config)
+            )
+        }
+        return DockerClientImpl.getInstance(config)
+            .withDockerCmdExecFactory(factory)
+    }
+
+    private fun makeDockerHttpClient(useOkHttp: Boolean, config: DockerClientConfig): DockerHttpClient {
+        if (useOkHttp) {
+            return OkDockerHttpClient.Builder()
                 .dockerHost(config.dockerHost)
                 .sslConfig(config.sslConfig)
                 .connectTimeout(30000)
                 .readTimeout(45000)
                 .build()
-            return DockerClientImpl.getInstance(config, httpClient)
+        } else {
+            return ApacheDockerHttpClient.Builder()
+                .dockerHost(config.dockerHost)
+                .sslConfig(config.sslConfig)
+                .connectionTimeout(Duration.ofSeconds(30L))
+                .responseTimeout(Duration.ofSeconds(45L))
+                .build()
         }
-        return DockerClientImpl.getInstance(config)
-            .withDockerCmdExecFactory(factory)
     }
+
 }
