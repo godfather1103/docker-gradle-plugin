@@ -182,6 +182,7 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
 
     private fun makeDockerHttpClient(useOkHttp: Boolean, config: DockerClientConfig): DockerHttpClient {
         if (useOkHttp) {
+            println("use okhttp")
             return OkDockerHttpClient.Builder()
                 .dockerHost(config.dockerHost)
                 .sslConfig(config.sslConfig)
@@ -189,6 +190,7 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
                 .readTimeout(45000)
                 .build()
         } else {
+            println("use apache httpclient5")
             return ApacheDockerHttpClient.Builder()
                 .dockerHost(config.dockerHost)
                 .sslConfig(config.sslConfig)
