@@ -25,7 +25,7 @@ class Resource : Serializable, Cloneable {
 
     lateinit var directory: String
 
-    var targetPath: String? = null
+    var targetPath: String = ""
 
     fun getIncludes(): List<String> {
         return includes
@@ -40,8 +40,8 @@ class Resource : Serializable, Cloneable {
         return this
     }
 
-    fun addIncludes(includes: Collection<String>?): Resource {
-        this.includes.addAll(includes!!)
+    fun addIncludes(includes: Collection<String>): Resource {
+        this.includes.addAll(includes)
         return this
     }
 
@@ -58,8 +58,8 @@ class Resource : Serializable, Cloneable {
         return this
     }
 
-    fun addExcludes(excludes: Collection<String>?): Resource {
-        this.excludes.addAll(excludes!!)
+    fun addExcludes(excludes: Collection<String>): Resource {
+        this.excludes.addAll(excludes)
         return this
     }
 }

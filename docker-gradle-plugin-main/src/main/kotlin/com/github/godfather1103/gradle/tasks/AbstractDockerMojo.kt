@@ -142,14 +142,12 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
     }
 
     private fun serverIdFor(): String {
-        val serverId = ext.serverId.getOrNull()
-        if (StringUtils.isNotEmpty(serverId)) {
-            return serverId!!
+        val serverId = ext.serverId.getOrElse("")
+        if (serverId.isNotEmpty()) {
+            return serverId
         }
-        val registryUrl = ext.registryUrl.getOrNull()
-        return if (StringUtils.isNotEmpty(registryUrl)) {
-            ext.registryUrl.get()
-        } else "index.docker.io"
+        return ext.registryUrl.getOrElse("")
+            .ifEmpty { "index.docker.io" }
     }
 
     @Throws(GradleException::class)

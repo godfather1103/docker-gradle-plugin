@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.google.common.base.Strings
 import org.gradle.api.GradleException
 import org.slf4j.Logger
 import java.io.IOException
@@ -51,11 +50,13 @@ class DockerBuildInformation {
     private fun updateGitInformation(log: Logger) {
         try {
             val repo = Git().repo
-            if (repo != null) {
-                this.repo = repo.config.getString("remote", "origin", "url")
-                val head = repo.resolve("HEAD")
-                if (head != null && !Strings.isNullOrEmpty(head.name)) {
-                    commit = head.name
+            if (repo.isPresent) {
+                this.repo = repo.get().config.getString("remote", "origin", "url")
+                val headName = repo.map { it.resolve("HEAD") }
+                    .map { it.name }
+                    .orElse("")
+                if (headName.isNotEmpty()) {
+                    commit = headName
                 }
             }
         } catch (e: IOException) {

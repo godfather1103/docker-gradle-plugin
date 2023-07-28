@@ -19,8 +19,6 @@ import com.google.common.base.CharMatcher.WHITESPACE
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
-import com.google.common.collect.Ordering
 import com.google.common.collect.Sets
 import io.vavr.control.Try
 import org.apache.commons.lang3.StringUtils
@@ -53,11 +51,11 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
      */
     private val WINDOWS_SEPARATOR = '\\'
 
-    private var dockerDirectory: String? = null
+    private lateinit var dockerDirectory: String
 
-    private var dockerDirectoryIncludes: Set<String>? = null
+    private lateinit var dockerDirectoryIncludes: Set<String>
 
-    private var dockerDirectoryExcludes: Set<String>? = null
+    private lateinit var dockerDirectoryExcludes: Set<String>
 
     /**
      * Flag to skip docker build, making build goal a no-op. This can be useful when docker:build
@@ -79,12 +77,12 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
     /**
      * Set to false to pass the `--rm` flag to the Docker daemon when building an image.
      */
-    private var rm = false
+    private var rm = true
 
     /**
      * File path to save image as a tar archive after it is built.
      */
-    private var saveImageToTarArchive: String? = null
+    private lateinit var saveImageToTarArchive: String
 
     /**
      * Flag to push image after it is built. Defaults to false.
@@ -104,49 +102,49 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
     /**
      * The maintainer of the image. Ignored if dockerDirectory is set.
      */
-    private var maintainer: String? = null
+    private lateinit var maintainer: String
 
     /**
      * The base image to use. Ignored if dockerDirectory is set.
      */
-    private var baseImage: String? = null
+    private lateinit var baseImage: String
 
     /**
      * The entry point of the image. Ignored if dockerDirectory is set.
      */
-    private var entryPoint: String? = null
+    private lateinit var entryPoint: String
 
     /**
      * The volumes for the image
      */
-    private var volumes: Array<String>? = null
+    private lateinit var volumes: Array<String>
 
     /**
      * The labels for the image
      */
-    private var labels: Array<String>? = null
+    private lateinit var labels: Array<String>
 
     /**
      * The cmd command for the image. Ignored if dockerDirectory is set.
      */
-    private var cmd: String? = null
+    private lateinit var cmd: String
 
     /**
      * The workdir for the image. Ignored if dockerDirectory is set
      */
-    private var workdir: String? = null
+    private lateinit var workdir: String
 
     /**
      * The user for the image. Ignored if dockerDirectory is set
      */
-    private var user: String? = null
+    private lateinit var user: String
 
     /**
      * The run commands for the image.
      */
-    private var runs: List<String>? = null
+    private lateinit var runs: List<String>
 
-    private var runList: List<String>? = null
+    private lateinit var runList: List<String>
 
     /**
      * Flag to squash all run commands into one layer. Defaults to false.
@@ -156,13 +154,13 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
     /**
      * All resources will be copied to this directory before building the image.
      */
-    protected var buildDirectory: String? = null
+    private lateinit var buildDirectory: String
 
     /**
      * Path to JSON file to write when tagging images.
      * Default is ${project.build.testOutputDirectory}/image_info.json
      */
-    protected var tagInfoFile: String? = null
+    private lateinit var tagInfoFile: String
 
     /**
      * If specified as true, a tag will be generated consisting of the first 7 characters of the most
@@ -182,28 +180,28 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
      */
     private var imageTags: List<String> = ArrayList()
 
-    private var env: Map<String, String>? = null
+    private lateinit var env: Map<String, String>
 
     private lateinit var exposes: List<String>
 
-    private var exposesSet: Set<String>? = null
+    private lateinit var exposesSet: Set<String>
 
-    private var buildArgs: Map<String, String>? = null
+    private lateinit var buildArgs: Map<String, String>
 
     /**
      * HEALTHCHECK. It expects a element for 'options' and 'cmd'
      * Added in docker 1.12 (https://docs.docker.com/engine/reference/builder/#/healthcheck).
      */
-    private var healthcheck: Map<String, String>? = null
+    private lateinit var healthcheck: Map<String, String>
 
     /**
      * Set the networking mode for the RUN instructions during build
      */
-    private var network: String? = null
+    private lateinit var network: String
 
-    private var needTagLatest: Boolean = true
+    private var needTagLatest = true
 
-    private var quiet: Boolean? = null
+    private var quiet = false
 
     private var resources: MutableList<Resource> = ArrayList(0)
 
@@ -216,43 +214,39 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
      * @param ext 扩展配置
      */
     override fun initExt(ext: DockerPluginExtension) {
-        dockerDirectory = ext.dockerDirectory.getOrNull()
-        dockerDirectoryIncludes = ext.dockerDirectoryIncludes.getOrNull()
-        dockerDirectoryExcludes = ext.dockerDirectoryExcludes.getOrNull()
+        dockerDirectory = ext.dockerDirectory.getOrElse("")
+        dockerDirectoryIncludes = ext.dockerDirectoryIncludes.getOrElse(HashSet(0))
+        dockerDirectoryExcludes = ext.dockerDirectoryExcludes.getOrElse(HashSet(0))
         skipDockerBuild = ext.skipDockerBuild.getOrElse(false)
         pullOnBuild = ext.pullOnBuild.getOrElse(false)
         noCache = ext.noCache.getOrElse(false)
         rm = ext.rm.getOrElse(true)
-        saveImageToTarArchive = ext.saveImageToTarArchive.getOrNull()
+        saveImageToTarArchive = ext.saveImageToTarArchive.getOrElse("")
         pushImage = ext.pushImage.getOrElse(false)
         pushImageTag = ext.pushImageTag.getOrElse(false)
         forceTags = ext.forceTags.getOrElse(false)
-        maintainer = ext.dockerMaintainer.getOrNull()
-        baseImage = ext.dockerBaseImage.getOrNull()
-        entryPoint = ext.dockerEntryPoint.getOrNull()
+        maintainer = ext.dockerMaintainer.getOrElse("")
+        baseImage = ext.dockerBaseImage.getOrElse("")
+        entryPoint = ext.dockerEntryPoint.getOrElse("")
         volumes = ext.dockerVolumes.getOrElse(ArrayList(0)).toTypedArray<String>()
         labels = ext.dockerLabels.getOrElse(ArrayList(0)).toTypedArray<String>()
-        cmd = ext.dockerCmd.getOrNull()
-        workdir = ext.workdir.getOrNull()
-        user = ext.user.getOrNull()
-        runs = ext.dockerRuns.getOrNull()
+        cmd = ext.dockerCmd.getOrElse("")
+        workdir = ext.workdir.getOrElse("")
+        user = ext.user.getOrElse("")
+        runs = ext.dockerRuns.getOrElse(ArrayList(0))
         squashRunCommands = ext.squashRunCommands.getOrElse(false)
         buildDirectory = ext.buildDirectory
-        tagInfoFile = ext.tagInfoFile.getOrNull()
+        tagInfoFile = ext.tagInfoFile.getOrElse("")
         useGitCommitId = ext.useGitCommitId.getOrElse(false)
         imageName = ext.imageName.get()
         imageTags = ext.dockerImageTags.getOrElse(ArrayList(0))
         env = ext.dockerEnv.getOrElse(HashMap(0))
         exposes = ext.dockerExposes.getOrElse(ArrayList(0))
-        buildArgs = ext.dockerBuildArgs.getOrNull()
-        healthcheck = ext.healthcheck.getOrNull()
-        network = ext.network.getOrNull()
+        buildArgs = ext.dockerBuildArgs.getOrElse(HashMap(0))
+        healthcheck = ext.healthcheck.getOrElse(HashMap(0))
+        network = ext.network.getOrElse("")
         resources.addAll(ext.resources.getOrElse(ArrayList(0)))
-        ext.project.properties.forEach { (k: String, v: Any?) ->
-            if (v != null) {
-                replaceMap[k] = v.toString()
-            }
-        }
+        ext.project.properties.forEach { (k, v) -> if (v != null) replaceMap[k] = v.toString() }
         needTagLatest = ext.needTagLatest.getOrElse(true)
         quiet = ext.quiet.getOrElse(false)
     }
@@ -271,7 +265,7 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
             getLog().info("Project packaging is parent")
             return true
         }
-        if (dockerDirectory != null) {
+        if (dockerDirectory.isNotEmpty()) {
             val path = Paths.get(dockerDirectory, "Dockerfile")
             if (!path.toFile().exists()) {
                 getLog().info("No Dockerfile in dockerDirectory")
@@ -293,10 +287,7 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                 return@run
             }
             exposesSet = Sets.newTreeSet(exposes)
-            if (runs != null) {
-                runList = Lists.newArrayList(runs!!)
-            }
-
+            runList = runs
             val git = Git()
             val commitId = if (git.isRepository()) git.getCommitId() else null
 
@@ -316,9 +307,9 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                 // expression evaluator. We will do that once here for image names loaded from the pom,
                 // and again in the loadProfile method when we load values from the profile.
                 replaceMap["gitShortCommitId"] = commitId
-                imageName = expand(imageName)!!
-                if (baseImage != null) {
-                    baseImage = expand(baseImage!!)
+                imageName = expand(imageName)
+                if (baseImage.isNotEmpty()) {
+                    baseImage = expand(baseImage)
                 }
             }
 
@@ -341,12 +332,12 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
             replaceMap["imageName"] = imageName
 
             val destination = getDestination()
-            if (dockerDirectory == null) {
+            if (dockerDirectory.isEmpty()) {
                 val copiedPaths = copyResources(destination)
                 createDockerFile(destination, copiedPaths)
             } else {
                 val resource = Resource()
-                resource.directory = dockerDirectory!!
+                resource.directory = dockerDirectory
                 resource.addIncludes("build/libs/**")
                     .addIncludes("Docker*")
                     .addIncludes("docker/**")
@@ -354,10 +345,10 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                     .addExcludes(".gradle/**")
                     .addExcludes("*gradle*")
                     .addExcludes("src/**")
-                if (Objects.nonNull(dockerDirectoryIncludes)) {
+                if (dockerDirectoryIncludes.isNotEmpty()) {
                     resource.addIncludes(dockerDirectoryIncludes)
                 }
-                if (Objects.nonNull(dockerDirectoryExcludes)) {
+                if (dockerDirectoryExcludes.isNotEmpty()) {
                     resource.addExcludes(dockerDirectoryExcludes)
                 }
                 resources.add(resource)
@@ -375,11 +366,11 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                     getRetryPushTimeout(), isSkipDockerPush()
                 )
             }
-            if (saveImageToTarArchive != null) {
+            if (saveImageToTarArchive.isNotEmpty()) {
                 saveImage(dockerClient, imageName, Paths.get(saveImageToTarArchive), getLog())
             }
             // Write image info file
-            writeImageInfoFile(buildInfo, tagInfoFile!!)
+            writeImageInfoFile(buildInfo, tagInfoFile)
         }.onFailure { getLog().error("dockerBuild Error", it) }
             .getOrElseThrow { e -> GradleException("dockerBuild Error", e) }
     }
@@ -391,30 +382,30 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
 
     @Throws(GradleException::class)
     private fun validateParameters() {
-        if (dockerDirectory == null) {
-            if (baseImage == null) {
+        if (dockerDirectory.isEmpty()) {
+            if (baseImage.isEmpty()) {
                 throw GradleException("Must specify baseImage if dockerDirectory is null")
             }
         } else {
-            if (baseImage != null) {
+            if (baseImage.isNotEmpty()) {
                 getLog().warn("Ignoring baseImage because dockerDirectory is set")
             }
-            if (maintainer != null) {
+            if (maintainer.isNotEmpty()) {
                 getLog().warn("Ignoring maintainer because dockerDirectory is set")
             }
-            if (entryPoint != null) {
+            if (entryPoint.isNotEmpty()) {
                 getLog().warn("Ignoring entryPoint because dockerDirectory is set")
             }
-            if (cmd != null) {
+            if (cmd.isNotEmpty()) {
                 getLog().warn("Ignoring cmd because dockerDirectory is set")
             }
-            if (runList != null && !runList!!.isEmpty()) {
+            if (runList.isNotEmpty()) {
                 getLog().warn("Ignoring run because dockerDirectory is set")
             }
-            if (workdir != null) {
+            if (workdir.isNotEmpty()) {
                 getLog().warn("Ignoring workdir because dockerDirectory is set")
             }
-            if (user != null) {
+            if (user.isNotEmpty()) {
                 getLog().warn("Ignoring user because dockerDirectory is set")
             }
         }
@@ -448,8 +439,8 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
         cmd.withNoCache(noCache)
         cmd.withRemove(rm)
         cmd.withQuiet(quiet)
-        buildArgs?.forEach { (t, u) -> cmd.withBuildArg(t, u) }
-        if (StringUtils.isNotEmpty(network)) {
+        buildArgs.forEach { (t, u) -> cmd.withBuildArg(t, u) }
+        if (network.isNotEmpty()) {
             cmd.withNetworkMode(network)
         }
         if (needTagLatest || imageTags.isEmpty()) {
@@ -476,67 +467,64 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
     @Throws(IOException::class)
     private fun createDockerFile(directory: String, filesToAdd: List<String>) {
         val commands: MutableList<String> = ArrayList()
-        if (baseImage != null) {
+        if (baseImage.isNotEmpty()) {
             commands.add("FROM $baseImage")
         }
-        if (maintainer != null) {
+        if (maintainer.isNotEmpty()) {
             commands.add("MAINTAINER $maintainer")
         }
-        if (env != null) {
-            val sortedKeys = Ordering.natural<Comparable<*>>().sortedCopy(
-                env!!.keys
-            )
-            for (key: String in sortedKeys) {
-                val value = env!![key]
+        if (env.isNotEmpty()) {
+            for (key: String in env.keys) {
+                val value = env[key]
                 commands.add(String.format("ENV %s %s", key, value))
             }
         }
-        if (workdir != null) {
+        if (workdir.isNotEmpty()) {
             commands.add("WORKDIR $workdir")
         }
         for (file: String in filesToAdd) {
             // The dollar sign in files has to be escaped because docker interprets it as variable
             commands.add(String.format("ADD %s %s", file.replace("\\$".toRegex(), "\\\\\\$"), normalizeDest(file)))
         }
-        if (runList != null && !runList!!.isEmpty()) {
+        if (runList.isNotEmpty()) {
             if (squashRunCommands) {
-                commands.add("RUN " + Joiner.on(" &&\\\n\t").join(runList!!))
+                commands.add("RUN " + Joiner.on(" &&\\\n\t").join(runList))
             } else {
-                for (run: String in runList!!) {
+                for (run: String in runList) {
                     commands.add("RUN $run")
                 }
             }
         }
-        if (healthcheck != null && healthcheck!!.containsKey("cmd")) {
+        if (healthcheck.containsKey("cmd")) {
             val healthcheckBuffer = StringBuffer("HEALTHCHECK ")
-            if (healthcheck!!.containsKey("options")) {
-                healthcheckBuffer.append(healthcheck!!["options"])
+            if (healthcheck.containsKey("options")) {
+                healthcheckBuffer.append(healthcheck["options"])
                 healthcheckBuffer.append(" ")
             }
             healthcheckBuffer.append("CMD ")
-            healthcheckBuffer.append(healthcheck!!["cmd"])
+            healthcheckBuffer.append(healthcheck["cmd"])
             commands.add(healthcheckBuffer.toString())
         }
-        if (exposesSet!!.isNotEmpty()) {
+        if (exposesSet.isNotEmpty()) {
             // The values will be sorted with no duplicated since exposesSet is a TreeSet
-            commands.add("EXPOSE " + Joiner.on(" ").join(exposesSet!!))
+            commands.add("EXPOSE " + Joiner.on(" ").join(exposesSet))
         }
-        if (user != null) {
+        if (user.isNotEmpty()) {
             commands.add("USER $user")
         }
-        if (entryPoint != null) {
+        if (entryPoint.isNotEmpty()) {
             commands.add("ENTRYPOINT $entryPoint")
         }
-        if (cmd != null) {
-            if (entryPoint != null) {
+        if (cmd.isNotEmpty()) {
+            if (entryPoint.isNotEmpty()) {
                 // CMD needs to be a list of arguments if ENTRYPOINT is set.
-                if (cmd!!.startsWith("[") && cmd!!.endsWith("]")) {
+                if (cmd.startsWith("[") && cmd.endsWith("]")) {
                     // cmd seems to be an argument list, so we're good
                     commands.add("CMD $cmd")
                 } else {
                     // cmd does not seem to be an argument list, so try to generate one.
                     val args: List<String> = ImmutableList.copyOf(
-                        Splitter.on(WHITESPACE).omitEmptyStrings().split(cmd!!)
+                        Splitter.on(WHITESPACE).omitEmptyStrings().split(cmd)
                     )
                     val cmdBuilder = StringBuilder("[")
                     for (arg: String in args) {
@@ -558,15 +546,15 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
         }
 
         // Add VOLUME's to dockerfile
-        if (volumes != null) {
-            for (volume: String in volumes!!) {
+        if (volumes.isNotEmpty()) {
+            for (volume: String in volumes) {
                 commands.add("VOLUME $volume")
             }
         }
 
         // Add LABEL's to dockerfile
-        if (labels != null) {
-            for (label: String in labels!!) {
+        if (labels.isNotEmpty()) {
+            for (label: String in labels) {
                 commands.add("LABEL $label")
             }
         }
@@ -615,10 +603,10 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                 getLog().info("No resources will be copied, no files match specified patterns")
             }
             val copiedPaths: MutableList<String> = ArrayList()
-            val copyWholeDir = includes.isEmpty() && excludes.isEmpty() && resource.targetPath != null
+            val copyWholeDir = includes.isEmpty() && excludes.isEmpty() && resource.targetPath.isNotEmpty()
 
             // file location relative to docker directory, used later to generate Dockerfile
-            val targetPath = if (resource.targetPath == null) "" else resource.targetPath!!
+            val targetPath = resource.targetPath
             if (copyWholeDir) {
                 val destPath = Paths.get(destination, targetPath)
                 getLog().info(String.format("Copying dir %s -> %s", source, destPath))
@@ -656,13 +644,16 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
         return Paths.get(buildDirectory, "docker").toString()
     }
 
-    fun expand(value: String): String? {
+    private fun expand(value: String): String {
         if (value.isEmpty()) {
             return value
         }
         var tmp = value
         for (key in replaceMap.keys) {
-            tmp = tmp.replace("\${$key}", replaceMap[key]!!)
+            val v = Optional.ofNullable(replaceMap[key])
+            if (v.isPresent) {
+                tmp = tmp.replace("\${$key}", v.get())
+            }
         }
         return tmp
     }

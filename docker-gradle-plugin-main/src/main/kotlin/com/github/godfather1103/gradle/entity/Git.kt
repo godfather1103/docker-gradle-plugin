@@ -7,42 +7,41 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.gradle.api.GradleException
 import java.io.IOException
+import java.util.*
 
 class Git {
 
-    var repo: Repository?
+    var repo: Optional<Repository> = Optional.empty()
 
     constructor() {
         val builder = FileRepositoryBuilder()
         builder.readEnvironment()
         builder.findGitDir()
-        repo = if (builder.gitDir == null) {
-            null
-        } else {
-            builder.build()
+        if (builder.gitDir != null) {
+            repo = Optional.ofNullable(builder.build())
         }
     }
 
     fun isRepository(): Boolean {
-        return repo != null
+        return repo.isPresent
     }
 
     @Throws(GitAPIException::class, DockerException::class, IOException::class, GradleException::class)
     fun getCommitId(): String? {
-        if (repo == null) {
+        if (!repo.isPresent) {
             throw GradleException(
                 "Cannot tag with git commit ID because directory not a git repo"
             )
         }
         val result = StringBuilder()
-        try {
+        repo.get().use {
             // get the first 7 characters of the latest commit
-            val head = repo!!.resolve("HEAD")
+            val head = it.resolve("HEAD")
             if (head == null || Strings.isNullOrEmpty(head.name)) {
                 return null
             }
             result.append(head.name.substring(0, 8))
-            val git = org.eclipse.jgit.api.Git(repo)
+            val git = org.eclipse.jgit.api.Git(it)
             // append first git tag we find
             for (gitTag in git.tagList().call()) {
                 if (gitTag.objectId.equals(head)) {
@@ -58,8 +57,6 @@ class Git {
             if (status.hasUncommittedChanges()) {
                 result.append(".DIRTY")
             }
-        } finally {
-            repo!!.close()
         }
         return if (result.isEmpty()) null else result.toString()
     }

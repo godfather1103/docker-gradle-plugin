@@ -16,6 +16,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.util.*
 
 object Utils {
 
@@ -91,9 +92,10 @@ object Utils {
                         super.onNext(item)
                         val msg = makeOutMsg(item)
                         println(msg)
-                        if (item.aux != null) {
+                        val aux = Optional.ofNullable(item.aux)
+                        if (aux.isPresent) {
                             val imageNameWithoutTag = parseImageName(imageName)[0]
-                            buildInfo.setDigest(imageNameWithoutTag + "@" + item.aux!!.digest)
+                            buildInfo.setDigest(imageNameWithoutTag + "@" + aux.get().digest)
                         }
                     }
                 }).awaitCompletion()
