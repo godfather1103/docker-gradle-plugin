@@ -8,6 +8,17 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 
+/** 
+ * <p>Title:        Godfather1103's Github</p>
+ * <p>Copyright:    Copyright (c) 2023</p>
+ * <p>Company:      https://github.com/godfather1103</p>
+ * 配置对象
+ * 
+ * @author  作者: Jack Chu E-mail: chuchuanbao@gmail.com<BR>
+ * 创建时间：2023-07-26 23:07 
+ * @version 1.0  
+ * @since  1.0
+ */
 open class DockerPluginExtension(val project: Project) {
 
     val dockerHost: Property<String> = project.objects.property(String::class.java)
