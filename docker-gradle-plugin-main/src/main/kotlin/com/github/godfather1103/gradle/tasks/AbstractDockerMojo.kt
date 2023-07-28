@@ -179,11 +179,11 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
     ): DockerClient {
         var tmp = type
         if (isWin && "netty" == tmp) {
-            tmp = "okhttp"
+            tmp = "httpclient5"
         }
+        println("use $tmp")
         return when (tmp) {
             "netty" -> {
-                println("use netty")
                 return DockerClientImpl.getInstance(config)
                     .withDockerCmdExecFactory(factory)
             }
