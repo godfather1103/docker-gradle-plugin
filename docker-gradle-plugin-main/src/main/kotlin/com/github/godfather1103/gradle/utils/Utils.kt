@@ -33,6 +33,9 @@ object Utils {
         if (StringUtils.isNotEmpty(obj.status)) {
             msg.append(obj.status).append(" ")
         }
+        if (StringUtils.isNotEmpty(obj.progress)) {
+            msg.append(obj.progress)
+        }
         return msg.toString()
     }
 
