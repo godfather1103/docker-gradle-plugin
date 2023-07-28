@@ -7,7 +7,6 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory
 import com.github.dockerjava.okhttp.OkDockerHttpClient
-import com.github.dockerjava.transport.DockerHttpClient
 import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.godfather1103.gradle.ext.DockerPluginExtension
 import com.sun.jna.Platform
@@ -168,36 +167,49 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
         }
         registryAuth(configBuilder)
         val config: DockerClientConfig = configBuilder.build()
-        if (Platform.isWindows() || Platform.isWindowsCE()) {
-            val useOkHttp = System.getProperty("docker.api.httpclient.type", "okhttp")
-                .equals("okhttp", true)
-            return DockerClientImpl.getInstance(
-                config,
-                makeDockerHttpClient(useOkHttp, config)
-            )
-        }
-        return DockerClientImpl.getInstance(config)
-            .withDockerCmdExecFactory(factory)
+        val isWin = Platform.isWindows() || Platform.isWindowsCE()
+        val type = System.getProperty("docker.api.httpclient.type", "netty")
+        return makeDockerClient(isWin, type, config)
     }
 
-    private fun makeDockerHttpClient(useOkHttp: Boolean, config: DockerClientConfig): DockerHttpClient {
-        if (useOkHttp) {
-            println("use okhttp")
-            return OkDockerHttpClient.Builder()
-                .dockerHost(config.dockerHost)
-                .sslConfig(config.sslConfig)
-                .connectTimeout(30000)
-                .readTimeout(45000)
-                .build()
-        } else {
-            println("use apache httpclient5")
-            return ApacheDockerHttpClient.Builder()
-                .dockerHost(config.dockerHost)
-                .sslConfig(config.sslConfig)
-                .connectionTimeout(Duration.ofSeconds(30L))
-                .responseTimeout(Duration.ofSeconds(45L))
-                .build()
+    private fun makeDockerClient(
+        isWin: Boolean,
+        type: String,
+        config: DockerClientConfig
+    ): DockerClient {
+        var tmp = type
+        if (isWin && "netty" == tmp) {
+            tmp = "okhttp"
         }
+        return when (tmp) {
+            "netty" -> {
+                println("use netty")
+                return DockerClientImpl.getInstance(config)
+                    .withDockerCmdExecFactory(factory)
+            }
+
+            "okhttp" -> DockerClientImpl.getInstance(
+                config, OkDockerHttpClient.Builder()
+                    .dockerHost(config.dockerHost)
+                    .sslConfig(config.sslConfig)
+                    .connectTimeout(30000)
+                    .readTimeout(45000)
+                    .build()
+            )
+
+            "httpclient5" -> DockerClientImpl.getInstance(
+                config, ApacheDockerHttpClient.Builder()
+                    .dockerHost(config.dockerHost)
+                    .sslConfig(config.sslConfig)
+                    .connectionTimeout(Duration.ofSeconds(30L))
+                    .responseTimeout(Duration.ofSeconds(45L))
+                    .build()
+            )
+
+            else -> DockerClientImpl.getInstance(config)
+                .withDockerCmdExecFactory(factory)
+        }
+
     }
 
 }
