@@ -19,7 +19,6 @@ import com.google.common.base.CharMatcher.WHITESPACE
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Sets
 import io.vavr.control.Try
 import org.apache.commons.lang3.StringUtils
 import org.apache.tools.ant.DirectoryScanner
@@ -36,7 +35,17 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-
+/**
+ * <p>Title:        Godfather1103's Github</p>
+ * <p>Copyright:    Copyright (c) 2023</p>
+ * <p>Company:      https://github.com/godfather1103</p>
+ * Build实现
+ *
+ * @author  作者: Jack Chu E-mail: chuchuanbao@gmail.com
+ * @date 创建时间：2023/7/28 12:22
+ * @version 1.0
+ * @since  1.0
+ */
 class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
 
     private val LOCK: Lock = ReentrantLock()
@@ -286,12 +295,16 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                 getLog().info("Skipping docker build")
                 return@run
             }
-            exposesSet = Sets.newTreeSet(exposes)
-            runList = runs
-            val git = Git()
-            val commitId = if (git.isRepository()) git.getCommitId() else null
 
-            if (commitId == null) {
+            exposesSet = exposes.toSet()
+            runList = runs
+
+            val commitId = Optional.of(Git())
+                .filter { it.isRepository() }
+                .map { it.getCommitId() }
+                .orElse("")
+
+            if (commitId.isEmpty()) {
                 val errorMessage =
                     "Not a git repository, cannot get commit ID. Make sure git repository is initialized."
                 if (useGitCommitId) {
@@ -302,10 +315,6 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                     getLog().debug(errorMessage)
                 }
             } else {
-                // Put the git commit id in the project properties. Image names may contain
-                // ${gitShortCommitId} in which case we want to fill in the actual value using the
-                // expression evaluator. We will do that once here for image names loaded from the pom,
-                // and again in the loadProfile method when we load values from the profile.
                 replaceMap["gitShortCommitId"] = commitId
                 imageName = expand(imageName)
                 if (baseImage.isNotEmpty()) {
@@ -317,11 +326,10 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
             val repoTag = parseImageName(imageName)
             val repo = repoTag[0]
             val tag = repoTag[1]
-
             if (useGitCommitId) {
-                if (tag != null) {
+                if (tag.isNotEmpty()) {
                     getLog().warn("Ignoring useGitCommitId flag because tag is explicitly set in image name ")
-                } else if (commitId == null) {
+                } else if (commitId.isEmpty()) {
                     throw GradleException(
                         "Cannot tag with git commit ID because directory not a git repo"
                     )
@@ -330,7 +338,6 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
                 }
             }
             replaceMap["imageName"] = imageName
-
             val destination = getDestination()
             if (dockerDirectory.isEmpty()) {
                 val copiedPaths = copyResources(destination)
