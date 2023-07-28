@@ -8,6 +8,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.okhttp.OkDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import com.github.godfather1103.gradle.utils.Utils;
 import org.junit.Test;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class DockerHttpClientTest {
                     @Override
                     public void onNext(BuildResponseItem item) {
                         super.onNext(item);
-                        System.out.println(item.getStream());
+                        System.out.println(Utils.makeOutMsg(item));
                     }
                 });
         String id = callback.awaitImageId();
