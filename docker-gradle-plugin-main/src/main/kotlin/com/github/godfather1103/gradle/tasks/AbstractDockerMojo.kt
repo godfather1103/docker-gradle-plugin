@@ -34,6 +34,8 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
 
     private val factory = NettyDockerCmdExecFactory()
 
+    private val clientTypeKey = "docker.api.client.type"
+
     private val log = LoggerFactory.getLogger(AbstractDockerMojo::class.java)
 
     open fun getLog(): Logger {
@@ -168,8 +170,13 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
         registryAuth(configBuilder)
         val config: DockerClientConfig = configBuilder.build()
         val isWin = Platform.isWindows() || Platform.isWindowsCE()
-        val type = System.getProperty("docker.api.httpclient.type", "netty")
-        return makeDockerClient(isWin, type, config)
+        var opt = Optional.ofNullable(System.getProperty(clientTypeKey))
+            .filter(StringUtils::isNotEmpty)
+        if (!opt.isPresent) {
+            opt = Optional.ofNullable(ext.project.findProperty(clientTypeKey))
+                .map(Objects::toString)
+        }
+        return makeDockerClient(isWin, opt.orElse("netty"), config)
     }
 
     private fun makeDockerClient(
