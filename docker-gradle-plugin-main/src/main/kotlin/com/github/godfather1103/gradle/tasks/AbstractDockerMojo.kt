@@ -50,7 +50,7 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
      */
     abstract fun initExt(ext: DockerPluginExtension)
 
-    fun isSkipDocker(): Boolean {
+    private fun isSkipDocker(): Boolean {
         return ext.skipDocker.getOrElse(false)
     }
 
@@ -60,6 +60,14 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
 
     fun getReadTimeout(): Int {
         return ext.readTimeout.getOrElse(0)
+    }
+
+    private fun getDockerApiClientReadTimeout(): Int {
+        return ext.dockerApiClientReadTimeout.getOrElse(45000)
+    }
+
+    private fun getDockerApiClientConnectTimeout(): Int {
+        return ext.dockerApiClientConnectTimeout.getOrElse(30000)
     }
 
     fun getRetryPushCount(): Int {
@@ -199,8 +207,8 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
                 config, OkDockerHttpClient.Builder()
                     .dockerHost(config.dockerHost)
                     .sslConfig(config.sslConfig)
-                    .connectTimeout(30000)
-                    .readTimeout(45000)
+                    .connectTimeout(getDockerApiClientConnectTimeout())
+                    .readTimeout(getDockerApiClientReadTimeout())
                     .build()
             )
 
@@ -208,8 +216,8 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
                 config, ApacheDockerHttpClient.Builder()
                     .dockerHost(config.dockerHost)
                     .sslConfig(config.sslConfig)
-                    .connectionTimeout(Duration.ofSeconds(30L))
-                    .responseTimeout(Duration.ofSeconds(45L))
+                    .connectionTimeout(Duration.ofMillis(getDockerApiClientConnectTimeout().toLong()))
+                    .responseTimeout(Duration.ofMillis(getDockerApiClientReadTimeout().toLong()))
                     .build()
             )
 

@@ -8,15 +8,15 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 
-/** 
+/**
  * <p>Title:        Godfather1103's Github</p>
  * <p>Copyright:    Copyright (c) 2023</p>
  * <p>Company:      https://github.com/godfather1103</p>
  * 配置对象
- * 
+ *
  * @author  作者: Jack Chu E-mail: chuchuanbao@gmail.com<BR>
- * 创建时间：2023-07-26 23:07 
- * @version 1.0  
+ * 创建时间：2023-07-26 23:07
+ * @version 1.0
  * @since  1.0
  */
 open class DockerPluginExtension(val project: Project) {
@@ -33,6 +33,9 @@ open class DockerPluginExtension(val project: Project) {
 
     val retryPushTimeout: Property<Int> = project.objects.property(Int::class.java).value(10000)
 
+    /**
+     * 编译过程中的超时时间，单位毫秒
+     * */
     val readTimeout: Property<Int> = project.objects.property(Int::class.java).value(0)
 
     val skipDocker: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
@@ -141,5 +144,14 @@ open class DockerPluginExtension(val project: Project) {
     val needTagLatest: Property<Boolean> = project.objects.property(Boolean::class.java).value(true)
 
     val quiet: Property<Boolean> = project.objects.property(Boolean::class.java).value(false)
+
+    val dockerApiClientConnectTimeout: Property<Int> = project
+        .objects
+        .property(Int::class.java)
+        .value(30000)
+    val dockerApiClientReadTimeout: Property<Int> = project
+        .objects
+        .property(Int::class.java)
+        .value(45000)
 
 }
