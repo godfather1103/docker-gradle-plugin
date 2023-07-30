@@ -1,7 +1,6 @@
 package com.github.godfather1103.gradle.entity
 
 import com.github.dockerjava.api.exception.DockerException
-import com.google.common.base.Strings
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -27,7 +26,7 @@ class Git {
     }
 
     @Throws(GitAPIException::class, DockerException::class, IOException::class, GradleException::class)
-    fun getCommitId(): String? {
+    fun getCommitId(): String {
         if (!repo.isPresent) {
             throw GradleException(
                 "Cannot tag with git commit ID because directory not a git repo"
@@ -35,12 +34,13 @@ class Git {
         }
         val result = StringBuilder()
         repo.get().use {
-            // get the first 7 characters of the latest commit
-            val head = it.resolve("HEAD")
-            if (head == null || Strings.isNullOrEmpty(head.name)) {
-                return null
+            val head = Optional.ofNullable(it.resolve("HEAD"))
+                .map { i -> i.name }
+                .orElse("")
+            if (head.isEmpty()) {
+                return ""
             }
-            result.append(head.name.substring(0, 8))
+            result.append(head.substring(0, 8))
             val git = org.eclipse.jgit.api.Git(it)
             // append first git tag we find
             for (gitTag in git.tagList().call()) {
@@ -58,6 +58,6 @@ class Git {
                 result.append(".DIRTY")
             }
         }
-        return if (result.isEmpty()) null else result.toString()
+        return if (result.isEmpty()) "" else result.toString()
     }
 }

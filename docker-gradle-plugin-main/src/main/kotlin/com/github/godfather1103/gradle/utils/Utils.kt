@@ -7,7 +7,6 @@ import com.github.dockerjava.api.model.PushResponseItem
 import com.github.dockerjava.api.model.ResponseItem
 import com.github.godfather1103.gradle.entity.CompositeImageName
 import com.github.godfather1103.gradle.entity.DockerBuildInformation
-import com.google.common.base.Strings
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.slf4j.Logger
@@ -42,8 +41,8 @@ object Utils {
 
     @JvmStatic
     @Throws(GradleException::class)
-    fun parseImageName(imageName: String): Array<String?> {
-        if (Strings.isNullOrEmpty(imageName)) {
+    fun parseImageName(imageName: String): Array<String> {
+        if (imageName.isEmpty()) {
             throw GradleException(
                 "You must specify an \"imageName\" in your docker-maven-client's plugin configuration"
             )
@@ -53,16 +52,12 @@ object Utils {
 
         // assume name doesn't contain tag by default
         var repo = imageName
-        var tag: String? = null
+        var tag = ""
 
         // the name contains a tag if lastColonIndex > lastSlashIndex
         if (lastColonIndex > lastSlashIndex) {
             repo = imageName.substring(0, lastColonIndex)
             tag = imageName.substring(lastColonIndex + 1)
-            // handle case where tag is empty string (e.g. 'repo:')
-            if (tag.isEmpty()) {
-                tag = null
-            }
         }
         return arrayOf(repo, tag)
     }

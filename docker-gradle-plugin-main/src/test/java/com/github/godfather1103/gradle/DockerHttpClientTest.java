@@ -8,11 +8,13 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.okhttp.OkDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import com.google.common.collect.Sets;
+import com.github.godfather1103.gradle.utils.Utils;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DockerHttpClientTest {
 
@@ -28,14 +30,15 @@ public class DockerHttpClientTest {
                 .readTimeout(45000)
                 .build();
         DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-        HashSet<String> set = Sets.newHashSet("trs-situation-web", "trs-situation-web:1.0");
+        Set<String> set = Arrays.stream(new String[]{"demo-web", "demo-web:1.0"})
+                .collect(Collectors.toSet());
         BuildImageResultCallback callback = dockerClient.buildImageCmd(new File("src/test/Dockerfile"))
                 .withTags(set)
                 .exec(new BuildImageResultCallback() {
                     @Override
                     public void onNext(BuildResponseItem item) {
                         super.onNext(item);
-                        System.out.println(item.getStream());
+                        System.out.println(Utils.makeOutMsg(item));
                     }
                 });
         String id = callback.awaitImageId();

@@ -4,14 +4,18 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory
+import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.github.godfather1103.gradle.entity.AuthConfig
 import com.github.godfather1103.gradle.ext.DockerPluginExtension
+import com.sun.jna.Platform
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.util.*
 
 /**
@@ -30,6 +34,8 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
 
     private val factory = NettyDockerCmdExecFactory()
 
+    private val clientTypeKey = "docker.api.client.type"
+
     private val log = LoggerFactory.getLogger(AbstractDockerMojo::class.java)
 
     open fun getLog(): Logger {
@@ -44,7 +50,7 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
      */
     abstract fun initExt(ext: DockerPluginExtension)
 
-    fun isSkipDocker(): Boolean {
+    private fun isSkipDocker(): Boolean {
         return ext.skipDocker.getOrElse(false)
     }
 
@@ -54,6 +60,14 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
 
     fun getReadTimeout(): Int {
         return ext.readTimeout.getOrElse(0)
+    }
+
+    private fun getDockerApiClientReadTimeout(): Int {
+        return ext.dockerApiClientReadTimeout.getOrElse(45000)
+    }
+
+    private fun getDockerApiClientConnectTimeout(): Int {
+        return ext.dockerApiClientConnectTimeout.getOrElse(30000)
     }
 
     fun getRetryPushCount(): Int {
@@ -163,7 +177,54 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
         }
         registryAuth(configBuilder)
         val config: DockerClientConfig = configBuilder.build()
-        return DockerClientImpl.getInstance(config)
-            .withDockerCmdExecFactory(factory)
+        val isWin = Platform.isWindows() || Platform.isWindowsCE()
+        var opt = Optional.ofNullable(System.getProperty(clientTypeKey))
+            .filter(StringUtils::isNotEmpty)
+        if (!opt.isPresent) {
+            opt = Optional.ofNullable(ext.project.findProperty(clientTypeKey))
+                .map(Objects::toString)
+        }
+        return makeDockerClient(isWin, opt.orElse("netty"), config)
     }
+
+    private fun makeDockerClient(
+        isWin: Boolean,
+        type: String,
+        config: DockerClientConfig
+    ): DockerClient {
+        var tmp = type
+        if (isWin && "netty" == tmp) {
+            tmp = "httpclient5"
+        }
+        println("use $tmp")
+        return when (tmp) {
+            "netty" -> {
+                return DockerClientImpl.getInstance(config)
+                    .withDockerCmdExecFactory(factory)
+            }
+
+            "okhttp" -> DockerClientImpl.getInstance(
+                config, OkDockerHttpClient.Builder()
+                    .dockerHost(config.dockerHost)
+                    .sslConfig(config.sslConfig)
+                    .connectTimeout(getDockerApiClientConnectTimeout())
+                    .readTimeout(getDockerApiClientReadTimeout())
+                    .build()
+            )
+
+            "httpclient5" -> DockerClientImpl.getInstance(
+                config, ApacheDockerHttpClient.Builder()
+                    .dockerHost(config.dockerHost)
+                    .sslConfig(config.sslConfig)
+                    .connectionTimeout(Duration.ofMillis(getDockerApiClientConnectTimeout().toLong()))
+                    .responseTimeout(Duration.ofMillis(getDockerApiClientReadTimeout().toLong()))
+                    .build()
+            )
+
+            else -> DockerClientImpl.getInstance(config)
+                .withDockerCmdExecFactory(factory)
+        }
+
+    }
+
 }

@@ -28,8 +28,9 @@ class DockerPlugin : Plugin<Project> {
         val dockerBuild = target.tasks.register("dockerBuild")
         dockerBuild.configure {
             it.group = "docker"
-            docker.dockerBuildDependsOn.isPresent
-            val dockerBuildDependsOn = docker.dockerBuildDependsOn.get()
+            val dockerBuildDependsOn = docker
+                .dockerBuildDependsOn
+                .getOrElse(HashSet(0))
             if (dockerBuildDependsOn.isNotEmpty()) {
                 it.dependsOn(dockerBuildDependsOn.toTypedArray())
             }
