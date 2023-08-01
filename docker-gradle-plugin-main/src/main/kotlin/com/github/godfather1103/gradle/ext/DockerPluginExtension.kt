@@ -135,6 +135,7 @@ open class DockerPluginExtension(val project: Project) {
 
     /**
      * 支持构建的平台
+     * @since 2.0
      * */
     val platform: Property<String> = project.objects.property(String::class.java)
 

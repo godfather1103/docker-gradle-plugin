@@ -20,7 +20,7 @@ Gitee: [https://gitee.com/godfather1103/docker-gradle-plugin](https://gitee.com/
 // groovy DSL
 // Using the plugins DSL:
 plugins {
-    id "io.github.godfather1103.docker-plugin" version "1.2.3"
+    id "io.github.godfather1103.docker-plugin" version "2.3"
 }
 
 // Using legacy plugin application:
@@ -31,7 +31,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.github.godfather1103:docker-plugin:1.2.3"
+        classpath "io.github.godfather1103:docker-plugin:2.3"
     }
 }
 apply plugin: "io.github.godfather1103.docker-plugin"
@@ -39,7 +39,7 @@ apply plugin: "io.github.godfather1103.docker-plugin"
 // kotlin DSL
 // Using the plugins DSL:
 plugins {
-    id("io.github.godfather1103.docker-plugin") version "1.2.3"
+    id("io.github.godfather1103.docker-plugin") version "2.3"
 }
 
 // Using legacy plugin application:
@@ -50,7 +50,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("io.github.godfather1103:docker-plugin:1.2.3")
+        classpath("io.github.godfather1103:docker-plugin:2.3")
     }
 }
 apply(plugin = "io.github.godfather1103.docker-plugin")
@@ -73,9 +73,10 @@ docker {
     dockerBuildArgs.put("GitTag", "1.0")
     imageName.value(name + "-groovy")
     dockerImageTags.add("1.0")
-    platform.value("linux/amd64")
     pushImageTag.value(true)
     pushImage.value(true)
+    // since 2.0
+    platform.value("linux/amd64")
 }
 // kotlin DSL
 docker {
@@ -91,9 +92,10 @@ docker {
     dockerBuildArgs.put("GitTag", "1.0")
     imageName.value("$name-kotlin")
     dockerImageTags.add("1.0")
-    platform.value("linux/arm64/v8")
     pushImageTag.value(true)
     pushImage.value(true)
+    // since 2.0
+    platform.value("linux/arm64/v8")
 }
 ```
 
