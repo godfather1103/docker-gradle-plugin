@@ -67,7 +67,7 @@ docker {
     def user = (project.findProperty("docker.username") ?: "").toString()
     def password = (project.findProperty("docker.password") ?: "").toString()
     def email = (project.findProperty("docker.email") ?: "").toString()
-    def name = (project.findProperty("docker.demo.imageName") ?: "").toString()
+    def name = (project.findProperty("docker.demo.imageName") ?: "demo").toString()
     if (!user.isEmpty() && !password.isEmpty()) {
         auth.value(new AuthConfig(user, password, email))
     }
