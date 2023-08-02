@@ -427,7 +427,11 @@ class BuildMojo(ext: DockerPluginExtension) : AbstractDockerMojo(ext) {
             override fun onNext(item: BuildResponseItem) {
                 super.onNext(item)
                 val msg = makeOutMsg(item)
-                print(msg)
+                if (msg.endsWith("\n")) {
+                    print(msg)
+                } else {
+                    println(msg)
+                }
             }
         })
         getLog().info("Built $imageName")
