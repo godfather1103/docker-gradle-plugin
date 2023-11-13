@@ -179,10 +179,10 @@ abstract class AbstractDockerMojo(val ext: DockerPluginExtension) : Action<Docke
         val config: DockerClientConfig = configBuilder.build()
         val isWin = Platform.isWindows() || Platform.isWindowsCE()
         var opt = Optional.ofNullable(System.getProperty(clientTypeKey))
-            .filter(StringUtils::isNotEmpty)
+            .filter { StringUtils.isNotEmpty(it) }
         if (!opt.isPresent) {
             opt = Optional.ofNullable(ext.project.findProperty(clientTypeKey))
-                .map(Objects::toString)
+                .map { it as String }
         }
         return makeDockerClient(isWin, opt.orElse("netty"), config)
     }
