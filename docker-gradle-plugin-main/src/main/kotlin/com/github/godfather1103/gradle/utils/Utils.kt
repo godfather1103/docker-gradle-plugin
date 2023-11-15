@@ -7,15 +7,19 @@ import com.github.dockerjava.api.model.PushResponseItem
 import com.github.dockerjava.api.model.ResponseItem
 import com.github.godfather1103.gradle.entity.CompositeImageName
 import com.github.godfather1103.gradle.entity.DockerBuildInformation
+import com.sun.jna.Platform
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.GradleException
 import org.slf4j.Logger
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.*
+import kotlin.streams.toList
 
 object Utils {
 
@@ -186,5 +190,54 @@ object Utils {
             Files.createDirectories(imageInfoPath.parent)
         }
         Files.write(imageInfoPath, buildInfo.toJsonBytes())
+    }
+
+
+    /**
+     * 给String扩展 execute() 函数
+     */
+    private fun String.execute(): Process {
+        val isWin = Platform.isWindows() || Platform.isWindowsCE()
+        val runtime = Runtime.getRuntime()
+        if (isWin) {
+            return runtime.exec(arrayOf("cmd", "/c", this))
+        }
+        return runtime.exec(arrayOf("sh", "-c", this))
+    }
+
+    /**
+     * 扩展Process扩展 text() 函数
+     */
+    private fun Process.text(): String {
+        // 输出 Shell 执行结果
+        val inputStream = this.inputStream
+        val insReader = InputStreamReader(inputStream)
+        val bufReader = BufferedReader(insReader)
+        return bufReader
+            .lines()
+            .toList()
+            .joinToString("\n")
+
+    }
+
+    @JvmStatic
+    fun checkCmdOrShellIsExist(command: String): Boolean {
+        return try {
+            val process = command.execute()
+            process.waitFor() == 0
+        } catch (e: Throwable) {
+            false
+        }
+    }
+
+    @JvmStatic
+    fun execCmdOrShell(command: String): String {
+        return try {
+            val process = command.execute()
+            process.waitFor()
+            return process.text()
+        } catch (e: Throwable) {
+            e.message ?: "command exec fail"
+        }
     }
 }
