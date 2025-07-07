@@ -17,7 +17,7 @@ plugins {
     java
     id("com.gradle.plugin-publish") version "0.15.0"
     `java-gradle-plugin`
-    kotlin("jvm") version "1.4.32"
+    kotlin("jvm") version "1.6.0"
     id("io.github.godfather1103.gradle-base-plugin") version "1.5"
 }
 
